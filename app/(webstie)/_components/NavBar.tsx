@@ -67,7 +67,7 @@ export default function NavBar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          {/* <div className="md:hidden flex items-center">
             <button
               onClick={() =>
                 setActiveCategory(
@@ -90,7 +90,7 @@ export default function NavBar() {
                 />
               </svg>
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Mobile Navigation */}
