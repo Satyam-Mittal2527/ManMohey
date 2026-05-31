@@ -20,7 +20,7 @@ export default function Header(){
                 <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500">🛒</span>
                 <span>Cart</span>
               </a>
-              <a href="/profile" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
+              <a href="/login" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-600">👤</span>
                 <span>Profile</span>
               </a>

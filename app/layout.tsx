@@ -1,7 +1,7 @@
 import "./globals.css";
 import Header from "./_components/Header";
 import Footer from "./_components/Footer";
-import NavBar from "./_components/NavBar";
+import NavBar from "./(webstie)/_components/NavBar";
 export const metadata = {
   title: "ManMohey",
   description: "ManMohey Clothing Website",
