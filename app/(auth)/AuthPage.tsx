@@ -23,7 +23,7 @@ export default function AuthForm({
             <span className="text-lg font-bold">WELCOME TO MANMOHEY</span>
             <form onSubmit={handleSubmit}>
                 <div className="flex flex-col gap-10" >
-                    {fields.map((field) => (
+                    {fields.map((field: any) => (
                         <div key={field.name} className="flex flex-col md:gap-5">
                             <label htmlFor={field.name} className="text-body-3">
                                 {field.label}
