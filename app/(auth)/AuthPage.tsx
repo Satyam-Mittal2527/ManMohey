@@ -4,7 +4,19 @@ export default function AuthForm({
     formData,
     handleChange,
     SubmitButtonText
-}) {
+}) :{
+    fields: {
+        name: string;
+        type: string;
+        label: string;
+    }[];
+    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+    formData: {
+        [key: string]: string;
+    };
+    handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    SubmitButtonText : string;
+} {
     return (
         <div className="
                 w-full max-w-md
