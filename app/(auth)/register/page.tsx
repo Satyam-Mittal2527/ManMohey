@@ -26,7 +26,9 @@ export default function Register() {
         password: "",
         confirm_password : ""
     });
-    async function handleSubmit(event) {
+    async function handleSubmit(
+            event: React.FormEvent<HTMLFormElement>
+    ) {
         event.preventDefault();
         if(formData.password != formData.confirm_password){
             alert("Passwords Doesnt match")
@@ -35,7 +37,9 @@ export default function Register() {
         }
         console.log("Form submitted with data:", formData);
     }
-    function handleChange(event) {
+    function handleChange(
+            event: React.ChangeEvent<HTMLInputElement>
+    ) {
         const { name, value } = event.target;
         setformData((currentFields) => ({
             ...currentFields,

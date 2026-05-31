@@ -13,18 +13,20 @@ const Login_Form_items = [{
     label: "Password"
 }
 ];
-
-
 export default function login() {
     const [formData, setformData] = useState({
         email: "",
         password: ""
     });
-    async function handleSubmit(event) {
+    async function handleSubmit(
+          event: React.FormEvent<HTMLFormElement>
+    ) {
         event.preventDefault();
         console.log("Form submitted with data:", formData);
     }
-    function handleChange(event) {
+    function handleChange(
+          event: React.FormEvent<HTMLFormElement>
+    ) {
         const { name, value } = event.target;
         setformData((currentFields) => ({
             ...currentFields,
