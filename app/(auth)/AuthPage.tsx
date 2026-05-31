@@ -1,27 +1,10 @@
-interface AuthFormProps {
-    fields: {
-        name: string;
-        type: string;
-        label: string;
-    }[];
-
-    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-
-    formData: {
-        [key: string]: string;
-    };
-
-    handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-
-    SubmitButtonText: string;
-}
 export default function AuthForm({
     fields,
     handleSubmit,
     formData,
     handleChange,
-    SubmitButtonText
-}:AuthFormProps) {
+    SubmitButtonText,
+}: any) {
     return (
         <div className="
                 w-full max-w-md
