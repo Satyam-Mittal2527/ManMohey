@@ -34,8 +34,8 @@ export default function login() {
     return (
         <div className="flex flex-col gap-6 text-center">
             <AuthForm
-                handleSubmit={handleSubmit}
                 fields={Login_Form_items}
+                handleSubmit={handleSubmit}
                 formData={formData}
                 handleChange={handleChange}
                 SubmitButtonText="Login"
