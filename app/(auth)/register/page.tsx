@@ -24,23 +24,25 @@ export default function Register() {
     const [formData, setformData] = useState({
         email: "",
         password: "",
-        confirm_password : ""
+        confirm_password: ""
     });
     async function handleSubmit(
-            event: React.FormEvent<HTMLFormElement>
+        event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
-        if(formData.password != formData.confirm_password){
+        if (formData.password != formData.confirm_password) {
             alert("Passwords Doesnt match")
-        }else{
+        } else {
             alert("Sign Up Succesfull")
         }
         console.log("Form submitted with data:", formData);
     }
     function handleChange(
-            event: React.ChangeEvent<HTMLInputElement>
+        event: React.ChangeEvent<HTMLInputElement>
     ) {
-        const { name, value } = event.target;
+        const name = event.target.name;
+        const value = event.target.value;
+
         setformData((currentFields) => ({
             ...currentFields,
             [name]: value,

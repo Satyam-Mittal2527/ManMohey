@@ -19,15 +19,17 @@ export default function login() {
         password: ""
     });
     async function handleSubmit(
-          event: React.FormEvent<HTMLFormElement>
+        event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
         console.log("Form submitted with data:", formData);
     }
     function handleChange(
-          event: React.FormEvent<HTMLFormElement>
+        event: React.ChangeEvent<HTMLInputElement>
     ) {
-        const { name, value } = event.target;
+        const name = event.target.name;
+        const value = event.target.value;
+
         setformData((currentFields) => ({
             ...currentFields,
             [name]: value,
