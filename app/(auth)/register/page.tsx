@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import AuthForm from "../AuthPage";
+import { Register_User } from "@/lib/api";
+
+
 const Login_Form_items = [{
     name: "email",
     type: "email",
@@ -32,8 +35,19 @@ export default function Register() {
         event.preventDefault();
         if (formData.password != formData.confirm_password) {
             alert("Passwords Doesnt match")
-        } else {
-            alert("Sign Up Succesfull")
+            return;
+        }
+
+        let response  = await Register_User({
+            email: formData.email,
+            password: formData.password
+        });
+        console.log(response);
+        if(response.status == 201){
+            alert("Registration Successful! Please Login.")
+            window.location.href = "/login";
+        }else{
+            alert("Registration Failed: " + response.detail);
         }
         console.log("Form submitted with data:", formData);
     }
