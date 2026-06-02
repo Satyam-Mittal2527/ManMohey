@@ -5,6 +5,9 @@ import NavBar from "./(webstie)/_components/NavBar";
 export const metadata = {
   title: "ManMohey",
   description: "ManMohey Clothing Website",
+  icons: {
+    icon: "/favicon.ico",
+  }
 }
 
 export default function RootLayout({
