@@ -19,6 +19,26 @@ const Login_Form_items = [{
     name: "confirm_password",
     type: "password",
     label: "Confirm Password"
+},
+{
+    name: "first_name",
+    type: "text",
+    label: "First Name"
+},
+{
+    name: "last_name",
+    type: "text",
+    label: "Last Name"
+},
+{
+    name: "age",
+    type: "number",
+    label: "Age"
+},
+{
+    name: "phone_number",
+    type: "tel",
+    label: "Phone Number"
 }
 ];
 
@@ -27,7 +47,11 @@ export default function Register() {
     const [formData, setformData] = useState({
         email: "",
         password: "",
-        confirm_password: ""
+        confirm_password: "",
+        first_name: "",
+        last_name: "",
+        age: "",
+        phone_number: ""
     });
     async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>
@@ -38,15 +62,19 @@ export default function Register() {
             return;
         }
 
-        let response  = await Register_User({
+        let response = await Register_User({
             email: formData.email,
-            password: formData.password
+            password: formData.password,
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            age: formData.age,
+            phone_number: formData.phone_number
         });
         console.log(response);
-        if(response.status == 201){
+        if (response.status_code == 201) {
             alert("Registration Successful! Please Login.")
             window.location.href = "/login";
-        }else{
+        } else {
             alert("Registration Failed: " + response.detail);
         }
         console.log("Form submitted with data:", formData);
@@ -54,9 +82,9 @@ export default function Register() {
     function handleChange(
         event: React.ChangeEvent<HTMLInputElement>
     ) {
-        const name = event.target.name;
+        const name = event.target.name as keyof typeof formData;
         const value = event.target.value;
-
+        
         setformData((currentFields) => ({
             ...currentFields,
             [name]: value,
@@ -73,7 +101,7 @@ export default function Register() {
             />
             <span className="text-body-3">
                 Have Account? Sign in here
-                <a href='/login' className='text-blue-600 font-sm'> Sign in</a>
+                <a href='/login' className='text-blue-600 font-medium font-bold'> Sign in</a>
             </span>
         </div>
     );

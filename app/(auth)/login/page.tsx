@@ -2,27 +2,58 @@
 
 import { useState, useEffect } from "react";
 import AuthForm from "../AuthPage";
-const Login_Form_items = [{
-    name: "email",
-    type: "email",
-    label: "Email"
-},
-{
-    name: "password",
-    type: "password",
-    label: "Password"
-}
-];
+import { SendOtp, VerifyOtp } from "@/lib/api";
+
+
 export default function login() {
+    const [Login_Form_items, setLogin_Form_items] = useState([{
+        name: "email",
+        type: "email",
+        label: "Email"
+    },]);
     const [formData, setformData] = useState({
         email: "",
-        password: ""
+        otp: ""
     });
+
+    const [isOtpSent, setIsOtpSent] = useState(false);
+
     async function handleSubmit(
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
         console.log("Form submitted with data:", formData);
+        if (!isOtpSent) {
+            let response = await SendOtp({
+                value: formData.email
+            });
+            console.log("OTP sent response:", response);
+
+            setformData({
+                email: formData.email,
+                otp: ""
+            })
+            setLogin_Form_items([{
+                name: "otp",
+                type: "text",
+                label: "OTP"
+            }])
+
+            setIsOtpSent(true);
+        } else {
+            // Handle OTP verification here
+            let response = await VerifyOtp({
+                email: formData.email,
+                token: formData.otp
+            });
+
+            console.log("OTP verification response:", response);
+            if(response.ok){
+                alert("Login successful!");
+                window.location.href = "/";
+            }
+        }
+
     }
     function handleChange(
         event: React.ChangeEvent<HTMLInputElement>
