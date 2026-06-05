@@ -1,4 +1,7 @@
+import Link from "next/link";
+
 interface Products {
+    product : string;
     name: string;
     image: string;
     price: string;
@@ -18,6 +21,8 @@ export default function CollectionProducts({
                     <img src={product.image} alt={product.name} className="w-full h-auto rounded-lg" />
                     <div className="text-body-2 font-medium">{product.name}</div>
                     <div className="text-body-3 text-gray-500">{product.price}</div>
+                    <Link href={`/collections/${product.product}/products/${product.name}`}>View Details
+                    </Link>
                 </div>
             ))}
         </div>

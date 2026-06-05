@@ -1,5 +1,6 @@
 import Collection_header from "./Collection_header";
 import CollectionProducts from "./Product_grid";
+import product from "./products/page";
 const headerLists = {
     sarees: [
         { name: "Casual Saree" },
@@ -38,30 +39,35 @@ const headerLists = {
 
 const products_grid = {
     sarees: Array.from({ length: 16 }, (_, index) => ({
+        product : "sarees",
         name: `Saree ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹999",
     })),
 
     kurtis: Array.from({ length: 16 }, (_, index) => ({
+        product : "Kurti",
         name: `Kurti ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹799",
     })),
 
     lehengas: Array.from({ length: 16 }, (_, index) => ({
+        product : "Lehenga",
         name: `Lehenga ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹1999",
     })),
 
     unstich: Array.from({ length: 16 }, (_, index) => ({
+        product : "Unstiched",
         name: `Unstitched ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹499",
     })),
 
     bridal:  Array.from({ length: 16 }, (_, index) => ({
+        product : "Bridal",
         name: `Bridal ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹499",
