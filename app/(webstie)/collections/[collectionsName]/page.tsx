@@ -46,7 +46,7 @@ const products_grid = {
     })),
 
     kurtis: Array.from({ length: 16 }, (_, index) => ({
-        product : "Kurti",
+        product : "kurtis",
         name: `Kurti ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹799",
