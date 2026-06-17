@@ -21,35 +21,35 @@ const Products = [
     Product_name: "Silk Saree 1",
     Product_price: "$400",
     Product_image: "/Test_saree.png",
-    Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
+    Product_images: ["/saree_icon.png", "/Test_Lehenga.png", "/Test_saree.png"]
   },
   {
     ProductId: "Saree%202",
     Product_name: "Silk Saree 2",
     Product_price: "$500",
     Product_image: "/Test_saree.png",
-    Product_images: ["/Test_saree.png", "/Test_saree.png"]
+    Product_images: ["/Test_Lehenga.png", "/Test_saree.png"]
   },
   {
     ProductId: "Saree%203",
     Product_name: "Silk Saree 3",
     Product_price: "$600",
     Product_image: "/Test_saree.png",
-    Product_images: ["/Test_saree.png", "/Test_saree.png"]
+    Product_images: ["/bridal_icon.png", "/Test_saree.png"]
   },
   {
     ProductId: "Saree%204",
     Product_name: "Silk Saree 4",
     Product_price: "8400",
     Product_image: "/Test_saree.png",
-    Product_images: ["/Test_saree.png", "/Test_saree.png"]
+    Product_images: ["/Test_kurti.png", "/Test_saree.png"]
   },
   {
     ProductId: "Kurti%202",
     Product_name: "Kurti 2",
     Product_price: "8400",
     Product_image: "/Test_saree.png",
-    Product_images: ["/Test_saree.png", "/Test_saree.png"]
+    Product_images: ["/Test_kurti.png", "/Test_saree.png"]
   }
 ]
 export default function Product() {
@@ -153,6 +153,28 @@ export default function Product() {
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
+            </div>
+            <div className="flex gap-3 mt-4">
+              {selectedProduct.Product_images.map((product) => (
+                <div
+                  key={product}
+                  className="cursor-pointer border rounded-md overflow-hidden"
+                  onClick={() => {
+                    const len = ((selectedProduct as any).Product_images || [
+                      (selectedProduct as any).Product_image,
+                    ]).length;
+                    setCurrentImageIndex((i) => (i - 1 + len) % len);
+                  }}
+                >
+                  <Image
+                    src={product}
+                    alt="More product image"
+                    width={80}
+                    height={100}
+                    className="object-cover hover:opacity-80"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         </div>

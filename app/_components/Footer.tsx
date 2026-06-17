@@ -35,16 +35,7 @@ export default function Footer(){
               </ul>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Company</h3>
-              <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="/about" className="hover:text-slate-900">About ManMohey</a></li>
-                <li><a href="/story" className="hover:text-slate-900">Our story</a></li>
-                <li><a href="/team" className="hover:text-slate-900">Meet team</a></li>
-                <li><a href="/testimonials" className="hover:text-slate-900">Testimonials</a></li>
-                <li><a href="/blog" className="hover:text-slate-900">Blog</a></li>
-              </ul>
-            </div>
+         
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Legal</h3>
