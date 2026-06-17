@@ -53,7 +53,7 @@ export default function Header() {
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex w-full items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 text-slate-900">
             <a href="/">
               <img src="/Logo.png" alt="ManMohey logo" className="h-12 w-auto" />
