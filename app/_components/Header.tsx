@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 // import NavBar from "../(webstie)/_components/NavBar"
+import { Search } from "lucide-react";
 import Link from "next/link";
 const categories = [
   {
@@ -48,11 +49,11 @@ const categories = [
   },
 ];
 export default function Header() {
-
+  const [searchTerm, setSearchTerm] = useState("");
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 text-slate-900">
             <a href="/">
               <img src="/Logo.png" alt="ManMohey logo" className="h-12 w-auto" />
@@ -86,6 +87,16 @@ export default function Header() {
             <a href="/sale" className="hover:text-slate-900">Sale</a> */}
             {/* <button className="hover:text-slate-900" onClick={() => setIsNavBarVisible(!isNavBarVisible)}>Collections</button> */}
           </nav>
+          <div className="flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 w-[400px]">
+            <Search className="h-5 w-5 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search for Sarees, Kurtis, Lehengas..."
+              className="ml-2 flex-1 outline-none bg-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <div className="flex items-center gap-4 text-sm text-slate-700">
             <a href="/cart" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
               <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500">🛒</span>
