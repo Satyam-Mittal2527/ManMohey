@@ -101,6 +101,33 @@ export default function Header() {
       {/* <div className={`block md:${isNavBarVisible ? "block" : "hidden"}`}>
         <NavBar />
       </div> */}
+      <nav className="flex items-center gap-8 text-sm font-medium text-slate-700">
+        <div className="flex flex-row gap-8 justify-center-safe">
+          {categories.map((category) => (
+            <div key={category.name} className="relative group">
+              <Link
+                href={category.href}
+                className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
+              >
+                {category.image && (
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-17 h-20 items-center"
+                  />
+                )}
+                <span className="text-lg font-medium text-slate-700 hover:text-slate-900">
+                  {category.name}
+                </span>
+              </Link>
+            </div>
+          ))}
+        </div>
+        {/* <a href="/newArrivals" className="hover:text-slate-900">New Arrivals</a>
+            <a href="/bestSellers" className="hover:text-slate-900">Best Sellers</a>
+            <a href="/sale" className="hover:text-slate-900">Sale</a> */}
+        {/* <button className="hover:text-slate-900" onClick={() => setIsNavBarVisible(!isNavBarVisible)}>Collections</button> */}
+      </nav>
     </div>
   )
 }
