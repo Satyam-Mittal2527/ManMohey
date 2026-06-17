@@ -88,7 +88,7 @@ export default function Header() {
             {/* <button className="hover:text-slate-900" onClick={() => setIsNavBarVisible(!isNavBarVisible)}>Collections</button> */}
           </nav>
           <div className="flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 w-[400px]">
-            <Search className="h-5 w-5 text-gray-500" />
+            <Search className=" w-2 h-5 md:w-5 text-gray-500" />
             <input
               type="text"
               placeholder="Search for Sarees, Kurtis, Lehengas..."
