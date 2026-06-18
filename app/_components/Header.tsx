@@ -240,6 +240,16 @@ export default function Header() {
           </div>
         </div>
       </header>
+      <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
+            <Search className="h-5 w-5 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search for Sarees, Kurtis, Lehengas..."
+              className="ml-2 flex-1 outline-none bg-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
       {showLoginPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowLoginPopup(false)} />
