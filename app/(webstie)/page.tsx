@@ -6,7 +6,7 @@ import Link from "next/link"
 const categories = [
   {
     name: "Sarees",
-    href: "/collections/Saree",
+    href: "/collections/sarees",
     image: "/saree_icon.png",
     description: "Timeless elegance in every drape",
   },
