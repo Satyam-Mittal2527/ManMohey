@@ -167,7 +167,7 @@ export default function Header() {
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto flex w-full items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 text-slate-900">
+          <div className="flex items-center gap-1 text-slate-900 flex-col">
             <a href="/">
               <img src="/Logo.png" alt="ManMohey logo" className="h-12 w-auto" />
             </a>
@@ -241,15 +241,15 @@ export default function Header() {
         </div>
       </header>
       <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
-            <Search className="h-5 w-5 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search for Sarees, Kurtis, Lehengas..."
-              className="ml-2 flex-1 outline-none bg-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <Search className="h-5 w-5 text-gray-500" />
+        <input
+          type="text"
+          placeholder="Search for Sarees, Kurtis, Lehengas..."
+          className="ml-2 flex-1 outline-none bg-transparent"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       {showLoginPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowLoginPopup(false)} />
@@ -277,13 +277,13 @@ export default function Header() {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="relative z-10 w-full max-w-md rounded bg-white shadow-lg">
             <div className="p-6">
-                <AuthForm
-                  fields={registerFormItems}
-                  handleSubmit={handleRegisterSubmit}
-                  formData={registerData}
-                  handleChange={handleRegisterChange}
-                  SubmitButtonText="Register"
-                />
+              <AuthForm
+                fields={registerFormItems}
+                handleSubmit={handleRegisterSubmit}
+                formData={registerData}
+                handleChange={handleRegisterChange}
+                SubmitButtonText="Register"
+              />
               <div className="text-center mt-3">
                 <span className="text-body-3">
                   Have Account? Sign in here&nbsp;

@@ -1,7 +1,7 @@
 export default function Footer(){
     return (
         <footer className="border-t border-slate-200 bg-white text-slate-900">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-6 lg:px-6">
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:sm:grid-cols-2 md:lg:grid-cols-6 lg:px-6 grid-cols-2">
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Shop</h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
