@@ -86,8 +86,8 @@ export default async function Collection({
         const categories = headerLists[collectionName as keyof typeof headerLists];
         return (
                 <div className="container mx-auto px-4">
-                        <div className="flex gap-8 items-start">
-                                    <MobileFilterDrawer Category={categories} />
+                        <div className="flex gap-8 md:items-start flex-col md:flex-row">
+                                    <MobileFilterDrawer CategoryList={categories}/>
                                     <Filter_bar CategoryList={categories} />
                                     <main className="flex-1">
                                         <div className="flex flex-col gap-4 w-full">

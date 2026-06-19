@@ -16,8 +16,8 @@ export default function Filter_bar({
                      <label key={categoryItems.name} className="flex items-center justify-between gap-2 py-1">
                         <span className="flex items-center gap-2">
                             <input type="checkbox" />{categoryItems.name}
-                        </span> <span className="text-[11px]">76</span>
-                    </label>
+                            </span> <span className="text-[11px]">76</span>
+                        </label>
                 ))}
             </div>
             <div className="mb-5">

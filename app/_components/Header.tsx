@@ -28,7 +28,7 @@ const categories = [
     description: "Celebrate in grace and beauty",
   },
   {
-    name: "Unstich",
+    name: "Unstitch",
     href: "/collections/unstich",
     image: "/saree_icon.png",
     description: "Perfect everyday elegance",
