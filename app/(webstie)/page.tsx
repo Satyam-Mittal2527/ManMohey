@@ -2,13 +2,81 @@ import Hero from "./_components/Hero"
 import Home_section2 from "./_components/Home_section2"
 import Home_section3 from "./_components/Home_section3"
 import Home_usercontact from "./_components/Home_usercontact"
+import Link from "next/link"
+const categories = [
+  {
+    name: "Sarees",
+    href: "/collections/Saree",
+    image: "/saree_icon.png",
+    description: "Timeless elegance in every drape",
+  },
+  {
+    name: "Kurtis",
+    href: "/collections/kurtis",
+    image: "/kurti_icon.png",
+    description: "Comfort meets style",
+  },
+  {
+    name: "Lehengas",
+    href: "/collections/lehengas",
+    image: "/lehenga_icon.png",
+    description: "Celebrate in grace and beauty",
+  },
+  {
+    name: "Unstitch",
+    href: "/collections/unstich",
+    image: "/saree_icon.png",
+    description: "Perfect everyday elegance",
+  },
+  {
+    name: "Bridal",
+    href: "/collections/bridal",
+    image: "/bridal_icon.png",
+    description: "Modern meets traditional",
+  },
+  {
+    name: "Beauty",
+    href: "/collections/beauty",
+    image: "/beauty_icon.png",
+    description: "Modern meets traditional",
+  },
+  {
+    name: "Lingerie",
+    href: "/collections/lingerie",
+    image: "/lingerie_icon.png",
+    description: "Modern meets traditional",
+  },
+];
 export default function Home() {
     return (
+
         <main className="bg-slate-50">
-            
+            <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
+                <div className="flex flex-row gap-8 justify-center-safe">
+                    {categories.map((category) => (
+                        <div key={category.name} className="relative group">
+                            <Link
+                                href={category.href}
+                                className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
+                            >
+                                {category.image && (
+                                    <img
+                                        src={category.image}
+                                        alt={category.name}
+                                        className="w-17 h-20 items-center"
+                                    />
+                                )}
+                                <span className="text-lg font-medium text-slate-700 hover:text-slate-900">
+                                    {category.name}
+                                </span>
+                            </Link>
+                        </div>
+                    ))}
+                </div>
+            </nav>
             <Hero />
             <Home_section2 />
-         
+
             <section className="bg-slate-50 py-14">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="text-center">

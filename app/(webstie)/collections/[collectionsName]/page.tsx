@@ -41,35 +41,35 @@ const headerLists = {
 
 const products_grid = {
     sarees: Array.from({ length: 16 }, (_, index) => ({
-        product : "sarees",
+        product: "sarees",
         name: `Saree ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹999",
     })),
 
     kurtis: Array.from({ length: 16 }, (_, index) => ({
-        product : "kurtis",
+        product: "kurtis",
         name: `Kurti ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹799",
     })),
 
     lehengas: Array.from({ length: 16 }, (_, index) => ({
-        product : "Lehenga",
+        product: "Lehenga",
         name: `Lehenga ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹1999",
     })),
 
     unstich: Array.from({ length: 16 }, (_, index) => ({
-        product : "Unstiched",
+        product: "Unstiched",
         name: `Unstitched ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹499",
     })),
 
-    bridal:  Array.from({ length: 16 }, (_, index) => ({
-        product : "Bridal",
+    bridal: Array.from({ length: 16 }, (_, index) => ({
+        product: "Bridal",
         name: `Bridal ${index + 1}`,
         image: "/Test_saree.png",
         price: "₹499",
@@ -82,27 +82,23 @@ export default async function Collection({
 }) {
     const collectionName = (await params).collectionsName;
     const products = products_grid[collectionName as keyof typeof products_grid];
-    const headerList =headerLists[collectionName as keyof typeof headerLists];
-        const categories = headerLists[collectionName as keyof typeof headerLists];
-        return (
-                <div className="container mx-auto px-4">
-                        <div className="flex gap-8 md:items-start flex-col md:flex-row">
-                                    <MobileFilterDrawer CategoryList={categories}/>
-                                    <Filter_bar CategoryList={categories} />
-                                    <main className="flex-1">
-                                        <div className="flex flex-col gap-4 w-full">
-                                                {/* <div>
-                                                        {headerList && (
-                                                                <Collection_header HeaderList={headerList} />
-                                                        )}
-                                                </div> */}
-                                                {products && (
-                                                        <CollectionProducts ProductsList={products} />
-                                                )}
-                                        </div>
-                                </main>
-                        </div>
-                </div>
-        );
+    const headerList = headerLists[collectionName as keyof typeof headerLists];
+    const categories = headerLists[collectionName as keyof typeof headerLists];
+    return (
+
+        <div className="container mx-auto px-4">
+            <div className="flex gap-8 md:items-start flex-col md:flex-row">
+                <MobileFilterDrawer CategoryList={categories} />
+                <Filter_bar CategoryList={categories} />
+                <main className="flex-1">
+                    <div className="flex flex-col gap-4 w-full">
+                        {products && (
+                            <CollectionProducts ProductsList={products} CollectionName = {collectionName}/>
+                        )}
+                    </div>
+                </main>
+            </div>
+        </div>
+    );
 }
 // class="btn btn--indigo btn--block"

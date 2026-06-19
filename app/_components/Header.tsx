@@ -200,8 +200,8 @@ export default function Header() {
             <a href="/sale" className="hover:text-slate-900">Sale</a> */}
             {/* <button className="hover:text-slate-900" onClick={() => setIsNavBarVisible(!isNavBarVisible)}>Collections</button> */}
           </nav>
-          <div className="md:flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px] hidden">
-            <Search className="h-5 w-5 text-gray-500" />
+          <div className="hidden md:flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
+            <Search className="md:h-5 md:w-5 text-gray-500" />
             <input
               type="text"
               placeholder="Search for Sarees, Kurtis, Lehengas..."
@@ -211,26 +211,26 @@ export default function Header() {
             />
           </div>
           <div className="flex items-center gap-4 text-sm text-slate-700">
+            <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 p-2 w-10">
+              <Search className="h-5 w-5 text-gray-500" />
+            </div>
             <a href="/cart" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
               <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500">🛒</span>
-              <span>Cart</span>
+              <span className="hidden md:flex">Cart</span>
             </a>
-            {/* <a href="/login" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-600">👤</span>
-              <span>Profile</span>
-            </a> */}
+         
             <div className="relative">
               <Button onClick={() => {
                 if (!isSignedIn) setShowLoginPopup(true)
                 else setProfilePageClick(true)
               }}>
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-600">👤</span>
-                <span>Profile</span>
+                <span className="hidden md:flex">Profile</span>
               </Button>
               {profilePageClick && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
                   <div className="p-3">
-                    <a href="/profile" className="block px-2 py-1 hover:bg-slate-100">My Profile</a>
+                    <a href="/profile" className="block px-2 py-1 hover:bg-slate-100"></a>
                     <a href="/orders" className="block px-2 py-1 hover:bg-slate-100">Orders</a>
                     <button onClick={() => setProfilePageClick(false)} className="mt-2 w-full text-left px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Close</button>
                   </div>
@@ -240,16 +240,7 @@ export default function Header() {
           </div>
         </div>
       </header>
-      <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
-        <Search className="h-5 w-5 text-gray-500" />
-        <input
-          type="text"
-          placeholder="Search for Sarees, Kurtis, Lehengas..."
-          className="ml-2 flex-1 outline-none bg-transparent"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+   
       {showLoginPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowLoginPopup(false)} />
@@ -294,7 +285,7 @@ export default function Header() {
           </div>
         </div>
       )}
-      <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
+      {/* <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
         <div className="flex flex-row gap-8 justify-center-safe">
           {categories.map((category) => (
             <div key={category.name} className="relative group">
@@ -316,7 +307,7 @@ export default function Header() {
             </div>
           ))}
         </div>
-      </nav>
+      </nav> */}
     </div>
   )
 }
