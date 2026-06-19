@@ -1,5 +1,7 @@
 import Collection_header from "./Collection_header";
 import CollectionProducts from "./Product_grid";
+import Filter_bar from "./FilterBar"
+import MobileFilterDrawer from "./MobileFilterDrawer";
 import product from "./products/page";
 const headerLists = {
     sarees: [
@@ -81,18 +83,26 @@ export default async function Collection({
     const collectionName = (await params).collectionsName;
     const products = products_grid[collectionName as keyof typeof products_grid];
     const headerList =headerLists[collectionName as keyof typeof headerLists];
-    return (
-        <>
-            <div className="flex flex-col gap-4 w-full">
-                <div>
-                    {headerList && (
-                        <Collection_header HeaderList={headerList} />
-                    )}
+        const categories = headerLists[collectionName as keyof typeof headerLists];
+        return (
+                <div className="container mx-auto px-4">
+                        <div className="flex gap-8 items-start">
+                                    <MobileFilterDrawer Category={categories} />
+                                    <Filter_bar CategoryList={categories} />
+                                    <main className="flex-1">
+                                        <div className="flex flex-col gap-4 w-full">
+                                                {/* <div>
+                                                        {headerList && (
+                                                                <Collection_header HeaderList={headerList} />
+                                                        )}
+                                                </div> */}
+                                                {products && (
+                                                        <CollectionProducts ProductsList={products} />
+                                                )}
+                                        </div>
+                                </main>
+                        </div>
                 </div>
-                {products && (
-                    <CollectionProducts ProductsList={products} />
-                )}
-            </div>
-        </>
-    );
+        );
 }
+// class="btn btn--indigo btn--block"
