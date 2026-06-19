@@ -294,7 +294,7 @@ export default function Header() {
           </div>
         </div>
       )}
-      <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700">
+      <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
         <div className="flex flex-row gap-8 justify-center-safe">
           {categories.map((category) => (
             <div key={category.name} className="relative group">
