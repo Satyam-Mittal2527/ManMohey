@@ -215,22 +215,22 @@ export default function Header() {
               <Search className="h-5 w-5 text-gray-500" />
             </div>
             <a href="/cart" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
-              <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500">🛒</span>
+              <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500"><i className="bi bi-cart"></i></span>
               <span className="hidden md:flex">Cart</span>
             </a>
          
             <div className="relative">
-              <Button onClick={() => {
+              <Button variant="outline" onClick={() => {
                 if (!isSignedIn) setShowLoginPopup(true)
                 else setProfilePageClick(true)
               }}>
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-600">👤</span>
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-600"><i className="bi bi-person-circle"></i></span>
                 <span className="hidden md:flex">Profile</span>
               </Button>
               {profilePageClick && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
                   <div className="p-3">
-                    <a href="/profile" className="block px-2 py-1 hover:bg-slate-100"></a>
+                    <a href="/profile" className="block px-2 py-1 hover:bg-slate-100">Profile</a>
                     <a href="/orders" className="block px-2 py-1 hover:bg-slate-100">Orders</a>
                     <button onClick={() => setProfilePageClick(false)} className="mt-2 w-full text-left px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Close</button>
                   </div>
@@ -285,29 +285,6 @@ export default function Header() {
           </div>
         </div>
       )}
-      {/* <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
-        <div className="flex flex-row gap-8 justify-center-safe">
-          {categories.map((category) => (
-            <div key={category.name} className="relative group">
-              <Link
-                href={category.href}
-                className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
-              >
-                {category.image && (
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-17 h-20 items-center"
-                  />
-                )}
-                <span className="text-lg font-medium text-slate-700 hover:text-slate-900">
-                  {category.name}
-                </span>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </nav> */}
     </div>
   )
 }
