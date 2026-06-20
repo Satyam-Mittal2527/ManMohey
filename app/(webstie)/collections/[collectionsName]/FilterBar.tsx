@@ -12,8 +12,8 @@ export default function Filter_bar({
         <aside className="hidden md:block w-[260px] p-5 sticky top-[100px] overflow-y-auto self-start max-h-[calc(100vh-140px)] bg-white">
             <div className="pb-5 mb-5 border-b">
                 <h3 className="font-semibold mb-3">Category</h3>
-                {CategoryList.map((categoryItems)=> (
-                     <label key={categoryItems.name} className="flex items-center justify-between gap-2 py-1">
+                {CategoryList?.map((categoryItems, idx)=> (
+                     <label key={idx} className="flex items-center justify-between gap-2 py-1">
                         <span className="flex items-center gap-2">
                             <input type="checkbox" />{categoryItems.name}
                             </span> <span className="text-[11px]">76</span>

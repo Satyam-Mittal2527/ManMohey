@@ -16,31 +16,17 @@ export default function Hero() {
     }, []);
 
     return (
-        <section className="overflow-hidden bg-gradient-to-r from-rose-400 via-fuchsia-500 to-orange-400 text-white">
-            <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-16 sm:px-6 lg:flex-row lg:items-center lg:py-24 lg:px-8">
-                <div className="lg:w-1/2">
-                    <div className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 p-6 shadow-2xl shadow-slate-950/15 sm:p-8">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.35),transparent_35%)]" />
-                        <div className="relative h-[420px] overflow-hidden rounded-[1.75rem] bg-slate-950">
-                            <div
-                                className="absolute inset-0 bg-cover bg-center opacity-95"
-                                style={{
-                                    backgroundImage: `url(${heroImageURL})`
-                                }}
-                            />
-                            <div className="absolute inset-0 bg-slate-950/35" />
-                            <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-                                <p className="text-xs uppercase tracking-[0.35em] text-white/80">Saree Fabrics</p>
-                                <h2 className="mt-4 text-3xl font-semibold sm:text-4xl">Elegance tailored for every occasion</h2>
-                                <p className="mt-3 max-w-xs text-sm leading-6 text-white/75">
-                                    Discover luxurious sarees designed to bring grace, color, and comfort to your wardrobe.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="lg:w-1/2 lg:pl-12">
+        <section
+            className="relative overflow-hidden bg-cover text-white"
+            style={{
+                backgroundImage: `url(${heroImageURL})`,
+                backgroundPosition: '20% 20%',
+                backgroundRepeat: 'no-repeat',
+                minHeight: '680px'
+            }}
+        >
+            <div className="mx-auto flex max-w-7xl flex-col gap-12 px-4 py-16 sm:px-6 lg:flex-row-reverse lg:items-center lg:justify-end lg:py-24 lg:px-8">
+                <div className="lg:w-1/2 lg:pr-0 lg:absolute lg:top-24 lg:right-12 lg:max-w-lg">
                     <p className="text-sm font-semibold uppercase tracking-[0.4em] text-white/85">Saree Fabrics</p>
                     <h1 className="mt-5 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
                         That define grace

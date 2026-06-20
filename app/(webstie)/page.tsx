@@ -2,6 +2,7 @@ import Hero from "./_components/Hero"
 import Home_section2 from "./_components/Home_section2"
 import Home_section3 from "./_components/Home_section3"
 import Home_usercontact from "./_components/Home_usercontact"
+import DealsBar from "./_components/DealsBar"
 import Link from "next/link"
 const categories = [
   {
@@ -75,6 +76,7 @@ export default function Home() {
                 </div>
             </nav>
             <Hero />
+            <DealsBar />
             <Home_section2 />
 
             <section className="bg-slate-50 py-14">
