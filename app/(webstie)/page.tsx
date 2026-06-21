@@ -1,6 +1,8 @@
 import Hero from "./_components/Hero"
 import Home_section2 from "./_components/Home_section2"
 import Home_section3 from "./_components/Home_section3"
+import Home_section4 from "./_components/Home_section4"
+import Home_section5 from "./_components/Home_section5"
 import Home_usercontact from "./_components/Home_usercontact"
 import DealsBar from "./_components/DealsBar"
 import Link from "next/link"
@@ -96,6 +98,8 @@ export default function Home() {
                 </div>
             </section>
             <Home_section3 />
+            <Home_section4 />
+            <Home_section5 />
             <section className="bg-white py-20">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-12">
