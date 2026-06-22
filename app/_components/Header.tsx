@@ -97,6 +97,9 @@ export default function Header() {
   })
 
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [cooldownEnd, setCooldownEnd] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState<number>(0);
+  const [isSending, setIsSending] = useState(false);
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
@@ -111,6 +114,13 @@ export default function Header() {
         setformData({ email: formData.email, otp: "" });
         setLogin_Form_items([{ name: "otp", type: "text", label: "OTP" }]);
         setIsOtpSent(true);
+        // start cooldown (Supabase default 3600s)
+        const ttl = 3600; // seconds
+        const end = Date.now() + ttl * 1000;
+        const key = `MM_otp_cooldown`;
+        try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) {}
+        setCooldownEnd(end);
+        setRemaining(ttl);
       } else {
         const msg = response?.data?.detail || response?.data?.message || "Failed to send OTP";
         alert(msg);
@@ -224,6 +234,60 @@ export default function Header() {
       if (stored) setAndPersistUser(stored);
     })();
   }, []);
+
+  // cooldown timer effect for header popup
+  useEffect(() => {
+    let interval: any = null;
+    const key = `MM_otp_cooldown`;
+
+    // on mount, try to load any existing cooldown object
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const obj = JSON.parse(stored);
+        const end = Number(obj?.end);
+        const email = obj?.email || "";
+        if (!isNaN(end) && end > Date.now()) {
+          setCooldownEnd(end);
+          setIsOtpSent(true);
+          // prefill email if empty
+          if (!formData.email) setformData((s) => ({ ...s, email }));
+        }
+      }
+    } catch (e) {}
+
+    if (cooldownEnd && cooldownEnd > Date.now()) {
+      interval = setInterval(() => {
+        const diff = Math.max(0, Math.ceil((cooldownEnd - Date.now()) / 1000));
+        setRemaining(diff);
+        if (diff <= 0) {
+          clearInterval(interval);
+          setCooldownEnd(null);
+          try { localStorage.removeItem(key); } catch (e) {}
+        }
+      }, 1000);
+    }
+
+    return () => { if (interval) clearInterval(interval); };
+  }, [cooldownEnd, formData.email]);
+
+  const handleResend = async () => {
+    if (cooldownEnd && cooldownEnd > Date.now()) return;
+    setIsSending(true);
+    const response = await SendOtp({ value: formData.email });
+    setIsSending(false);
+    if (response && response.ok) {
+      const ttl = 3600;
+      const end = Date.now() + ttl * 1000;
+      const key = `MM_otp_cooldown`;
+      try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) {}
+      setCooldownEnd(end);
+      setRemaining(ttl);
+    } else {
+      const msg = response?.data?.detail || response?.data?.message || response?.statusText || "Failed to resend OTP";
+      alert(msg);
+    }
+  };
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
@@ -329,6 +393,28 @@ export default function Header() {
                 handleChange={handleChange}
                 SubmitButtonText={isOtpSent ? "Verify" : "Login"}
               />
+              {isOtpSent && (
+                <div className="max-w-md mx-auto mt-4 text-left">
+                  <div className="mb-2 font-medium">Resend OTP</div>
+                  <div className="w-full bg-gray-200 rounded h-3 overflow-hidden mb-2">
+                    <div
+                      className="bg-blue-600 h-3 transition-all"
+                      style={{ width: `${(100 - Math.max(0, ((remaining / 3600) * 100))).toFixed(2)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={!!(cooldownEnd && cooldownEnd > Date.now()) || isSending}
+                      className={`px-3 py-1 rounded ${(cooldownEnd && cooldownEnd > Date.now()) || isSending ? 'bg-gray-300 text-gray-600' : 'bg-blue-600 text-white'}`}
+                    >
+                      {isSending ? 'Sending...' : (cooldownEnd && cooldownEnd > Date.now() ? `Resend available in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}` : 'Resend OTP')}
+                    </button>
+                    <div className="text-sm text-gray-600">If you didn't receive the OTP, you can resend after the cooldown.</div>
+                  </div>
+                </div>
+              )}
               <div className="text-center mt-3">
                 <span className="text-body-3">
                   New to the ManMohey?&nbsp;
