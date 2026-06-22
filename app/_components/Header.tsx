@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../(webstie)/_components/ui/button";
 import AuthForm from "../(auth)/AuthPage";
-import { SendOtp, VerifyOtp, Register_User } from "@/lib/api";
+import { SendOtp, VerifyOtp, Register_User, GetCurrentUser, Logout } from "@/lib/api";
 
 const categories = [
   {
@@ -56,6 +56,7 @@ export default function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any | null>(null)
   const [showLoginPopup, setShowLoginPopup] = useState(false)
   const [showRegisterPopup, setShowRegisterPopup] = useState(false)
   const [Login_Form_items, setLogin_Form_items] = useState([{
@@ -87,22 +88,17 @@ export default function Header() {
     event.preventDefault();
     console.log("Form submitted with data:", formData);
     if (!isOtpSent) {
-      let response = await SendOtp({
-        value: formData.email
-      });
+      const response = await SendOtp({ value: formData.email });
       console.log("OTP sent response:", response);
 
-      setformData({
-        email: formData.email,
-        otp: ""
-      })
-      setLogin_Form_items([{
-        name: "otp",
-        type: "text",
-        label: "OTP"
-      }])
-
-      setIsOtpSent(true);
+      if (response && response.ok) {
+        setformData({ email: formData.email, otp: "" });
+        setLogin_Form_items([{ name: "otp", type: "text", label: "OTP" }]);
+        setIsOtpSent(true);
+      } else {
+        const msg = response?.data?.detail || response?.data?.message || "Failed to send OTP";
+        alert(msg);
+      }
     } else {
       // Handle OTP verification here
       let response = await VerifyOtp({
@@ -112,8 +108,17 @@ export default function Header() {
 
       console.log("OTP verification response:", response);
       if (response.ok) {
-        alert("Login successful!");
-        window.location.href = "/";
+        // use returned user directly when available (works even if cookies aren't accepted)
+        const returned = response.data || null;
+        if (returned && returned.user) {
+          setAndPersistUser(returned.user);
+        } else {
+          // fallback to /me
+          const data = await GetCurrentUser();
+          if (data && data.user) setAndPersistUser(data.user);
+        }
+        setShowLoginPopup(false);
+        setProfilePageClick(true);
       }
     }
 
@@ -163,6 +168,46 @@ export default function Header() {
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [])
+
+  // localStorage helpers (store only non-sensitive user info)
+  const LOCAL_KEY = "MM_currentUser";
+  const saveUser = (u: any | null) => {
+    try {
+      if (u) localStorage.setItem(LOCAL_KEY, JSON.stringify(u));
+      else localStorage.removeItem(LOCAL_KEY);
+    } catch (e) {
+      console.warn("localStorage save error", e);
+    }
+  };
+  const loadUserFromStorage = (): any | null => {
+    try {
+      const raw = localStorage.getItem(LOCAL_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.warn("localStorage load error", e);
+      return null;
+    }
+  };
+
+  const setAndPersistUser = (u: any | null) => {
+    setCurrentUser(u);
+    setIsSignedIn(!!u);
+    saveUser(u);
+  };
+
+  // load current user on mount: try backend then fallback to localStorage
+  useEffect(() => {
+    (async () => {
+      const data = await GetCurrentUser();
+      if (data && data.user) {
+        setAndPersistUser(data.user);
+        return;
+      }
+
+      const stored = loadUserFromStorage();
+      if (stored) setAndPersistUser(stored);
+    })();
+  }, []);
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
@@ -225,7 +270,7 @@ export default function Header() {
                 else setProfilePageClick(true)
               }}>
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-600"><i className="bi bi-person-circle"></i></span>
-                <span className="hidden md:flex">Profile</span>
+                <span className="hidden md:flex">{currentUser?.user_metadata?.display_name || currentUser?.email || 'Profile'}</span>
               </Button>
               {profilePageClick && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
@@ -233,6 +278,21 @@ export default function Header() {
                     <a href="/profile" className="block px-2 py-1 hover:bg-slate-100">Profile</a>
                     <a href="/orders" className="block px-2 py-1 hover:bg-slate-100">Orders</a>
                     <button onClick={() => setProfilePageClick(false)} className="mt-2 w-full text-left px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Close</button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await Logout();
+                        } catch (e) {
+                          console.warn('logout error', e);
+                        }
+                        setAndPersistUser(null);
+                        setProfilePageClick(false);
+                        window.location.href = '/';
+                      }}
+                      className="mt-2 w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-slate-100"
+                    >
+                      Logout
+                    </button>
                   </div>
                 </div>
               )}
