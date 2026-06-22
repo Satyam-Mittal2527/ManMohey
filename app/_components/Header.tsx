@@ -68,6 +68,22 @@ export default function Header() {
     { name: "email", type: "email", label: "Email" },
     { name: "password", type: "password", label: "Password" },
     { name: "confirm_password", type: "password", label: "Confirm Password" },
+    { name: "first_name", type: "text", label: "First Name" },
+    {
+      name: "last_name",
+      type: "text",
+      label: "Last Name"
+    },
+    {
+      name: "age",
+      type: "number",
+      label: "Age"
+    },
+    {
+      name: "phone_number",
+      type: "tel",
+      label: "Phone Number"
+    }
   ])
   const [formData, setformData] = useState({
     email: "",
@@ -263,7 +279,7 @@ export default function Header() {
               <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500"><i className="bi bi-cart"></i></span>
               <span className="hidden md:flex">Cart</span>
             </a>
-         
+
             <div className="relative">
               <Button variant="outline" onClick={() => {
                 if (!isSignedIn) setShowLoginPopup(true)
@@ -300,7 +316,7 @@ export default function Header() {
           </div>
         </div>
       </header>
-   
+
       {showLoginPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowLoginPopup(false)} />
