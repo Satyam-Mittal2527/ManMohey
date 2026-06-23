@@ -58,11 +58,11 @@ export default function Hero() {
                     {heroImageList.length > 0 ? heroImageList.map((img, i) => (
                         <div
                             key={i}
-                            className="slide min-w-full bg-cover bg-center"
-                            style={{ backgroundImage: `url(${img})`, minHeight: '680px' }}
+                            className="slide min-w-full bg-[image:var(--bg)] bg-center bg-cover min-h-[680px]"
+                            style={{ ['--bg' as any]: `url(${img})` }}
                         />
                     )) : (
-                        <div className="slide min-w-full bg-gray-200" style={{ minHeight: '680px' }} />
+                        <div className="slide min-w-full bg-gray-200 min-h-[680px]" />
                     )}
                 </div>
 

@@ -398,8 +398,8 @@ export default function Header() {
                   <div className="mb-2 font-medium">Resend OTP</div>
                   <div className="w-full bg-gray-200 rounded h-3 overflow-hidden mb-2">
                     <div
-                      className="bg-blue-600 h-3 transition-all"
-                      style={{ width: `${(100 - Math.max(0, ((remaining / 3600) * 100))).toFixed(2)}%` }}
+                      className="bg-blue-600 h-3 transition-all w-[var(--progress-width)]"
+                      style={{ ['--progress-width' as any]: `${(100 - Math.max(0, ((remaining / 3600) * 100))).toFixed(2)}%` }}
                     />
                   </div>
                   <div className="flex items-center gap-3">
