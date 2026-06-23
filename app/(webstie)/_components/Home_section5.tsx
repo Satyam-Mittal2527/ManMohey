@@ -34,7 +34,7 @@ export default function Home_section5() {
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Best Sellers</p>
-                    <a href="/trendings"><button className="border border-black px-3 py-1 rounded">View All</button></a>
+                    <a href="/bestSellers"><button className="border border-black px-3 py-1 rounded">View All</button></a>
                 </div>
 
                 <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">

@@ -107,7 +107,7 @@ const Products = [
         Product_images: ["/Test_saree.png", "/Test_saree.png"]
     }
 ]
-export default function NewArrivals() {
+export default function Trendings() {
     return (
         <>
             <section id="hero" className="
@@ -119,7 +119,7 @@ export default function NewArrivals() {
 bg-[#FCFAF7]
   ">
                 <p className="text-[12.5px] font-semibold tracking-[0.22em] uppercase text-[var(--gold-deep)] mb-[18px]">Curated by our in-house stylists</p>
-                <h1 className="font-[var(--font-display)] font-semibold text-[clamp(44px,7vw,78px)] text-[var(--wine-deep)] leading-[1.05]">New Arrivals</h1>
+                <h1 className="font-[var(--font-display)] font-semibold text-[clamp(44px,7vw,78px)] text-[var(--wine-deep)] leading-[1.05]">Trendings</h1>
                 <p className="font-[var(--font-display)] italic text-[20px] text-[var(--wine-soft)] mt-4">हाथों से बुना, दिलों से चुना</p>
                 <p className="max-w-[520px] mt-[18px] mx-auto text-[var(--ink-soft)] text-[15.5px] leading-[1.6]">Handwoven by artisans, chosen by women across India — the eight pieces our customers keep coming back for, ranked by what's flying off the shelf this month.</p>
                 <div className="md:flex justify-center gap-[28px] mt-[30px] text-[13.5px] font-medium text-[var(--ink-soft)] hidden">

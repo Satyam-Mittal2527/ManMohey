@@ -38,17 +38,17 @@ const headerLists = {
         { name: "Bridal Unstitched" },
     ],
     beauty: [
-        { name: "Bridal Sarees" },
-        { name: "Bridal Kurtis" },
-        { name: "Bridal Lehengas" },
-        { name: "Bridal Unstitched" },
+        { name: "Beauty 1" },
+        { name: "Beauty 2" },
+        { name: "Beauty 3" },
+        { name: "Beauty 4" },
     ],
     lingerie: [
-        { name: "Bridal Sarees" },
-        { name: "Bridal Kurtis" },
-        { name: "Bridal Lehengas" },
-        { name: "Bridal Unstitched" },
-    ]
+        { name: "Linegerie 1" },
+        { name: "Linegerie 2" },
+        { name: "Linegerie 3" },
+        { name: "Linegerie 4" },
+    ],
 };
 
 const products_grid = {
@@ -126,4 +126,3 @@ export default async function Collection({
         </div>
     );
 }
-// class="btn btn--indigo btn--block"
