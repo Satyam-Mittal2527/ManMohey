@@ -36,6 +36,18 @@ const headerLists = {
         { name: "Bridal Kurtis" },
         { name: "Bridal Lehengas" },
         { name: "Bridal Unstitched" },
+    ],
+    beauty: [
+        { name: "Bridal Sarees" },
+        { name: "Bridal Kurtis" },
+        { name: "Bridal Lehengas" },
+        { name: "Bridal Unstitched" },
+    ],
+    lingerie: [
+        { name: "Bridal Sarees" },
+        { name: "Bridal Kurtis" },
+        { name: "Bridal Lehengas" },
+        { name: "Bridal Unstitched" },
     ]
 };
 
@@ -74,6 +86,19 @@ const products_grid = {
         image: "/Test_saree.png",
         price: "₹499",
     })),
+    beauty: Array.from({ length: 16 }, (_, index) => ({
+        product: "Bridal",
+        name: `Beauty ${index + 1}`,
+        image: "/Test_saree.png",
+        price: "₹499",
+    })),
+    lingerie: Array.from({ length: 16 }, (_, index) => ({
+        product: "Bridal",
+        name: `Linegerie ${index + 1}`,
+        image: "/Test_saree.png",
+        price: "₹499",
+    })),
+    
 };
 export default async function Collection({
     params,
