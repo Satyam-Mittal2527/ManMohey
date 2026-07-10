@@ -6,6 +6,8 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../(webstie)/_components/ui/button";
 import AuthForm from "../(auth)/AuthPage";
+import Profile from "../(webstie)/profile/page";
+import Orders from "../(webstie)/orders/page";
 import { SendOtp, VerifyOtp, Register_User, GetCurrentUser, Logout } from "@/lib/api";
 
 const categories = [
@@ -115,7 +117,7 @@ export default function Header() {
         setLogin_Form_items([{ name: "otp", type: "text", label: "OTP" }]);
         setIsOtpSent(true);
         // start cooldown (Supabase default 3600s)
-        const ttl = 3600; // seconds
+        const ttl = 60; // seconds
         const end = Date.now() + ttl * 1000;
         const key = `MM_otp_cooldown`;
         try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) {}
@@ -355,8 +357,12 @@ export default function Header() {
               {profilePageClick && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
                   <div className="p-3">
-                    <a href="/profile" className="block px-2 py-1 hover:bg-slate-100">Profile</a>
-                    <a href="/orders" className="block px-2 py-1 hover:bg-slate-100">Orders</a>
+                    <Link href="/profile">
+                      <span className="block px-2 py-1 hover:bg-slate-100">Profile</span>
+                    </Link>
+                    <Link href="/orders">
+                      <span className="block px-2 py-1 hover:bg-slate-100">Orders</span>
+                    </Link>
                     <button onClick={() => setProfilePageClick(false)} className="mt-2 w-full text-left px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Close</button>
                     <button
                       onClick={async () => {
