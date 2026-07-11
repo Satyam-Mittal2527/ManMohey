@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 
 export default function Hero() {
     const [heroImageList, setheroImageList] = useState<string[]>([]);
+    const [ImageLink, setImageLink] = useState<string[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const trackRef = useRef<HTMLDivElement | null>(null);
     const autoRef = useRef<number | null>(null);
@@ -16,8 +17,10 @@ export default function Hero() {
             const data = await Get_Home_page_Hero();
             console.log(data.images)
             if (data && Array.isArray(data.images)) {
-                const imgs = data.images.map((s: string) => (s || '').trim()).filter(Boolean);
+                const imgs = data.images.map((img: any) => img.image_url).filter(Boolean);
+                const links = data.images.map((img: any) => img.button_link).filter(Boolean);
                 setheroImageList(imgs);
+                setImageLink(links);
             }
         };
         fetchHeroData();
@@ -47,20 +50,28 @@ export default function Hero() {
         if (!isPaused && heroImageList.length > 1) start();
         return () => stop();
     }, [isPaused, heroImageList]);
+
+    console.log("ImageLink", ImageLink);
     return (
         <>
             <div
-                className="slider-container relative overflow-hidden bg-cover text-white"
+                className="slider-container relative w-full overflow-hidden bg-cover text-white min-h-[680px]"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
             >
                 <div ref={trackRef} className="slider-track flex w-full">
                     {heroImageList.length > 0 ? heroImageList.map((img, i) => (
-                        <div
+                        <a href={ImageLink[i]}
                             key={i}
-                            className="slide min-w-full bg-[image:var(--bg)] bg-center bg-cover min-h-[680px]"
-                            style={{ ['--bg' as any]: `url(${img})` }}
-                        />
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="min-w-full block">
+                            
+                            <div
+                                className="slide w-full bg-center bg-cover min-h-[680px]"
+                                style={{ backgroundImage: `url(${img})` }}
+                            />
+                        </a>
                     )) : (
                         <div className="slide min-w-full bg-gray-200 min-h-[680px]" />
                     )}
@@ -97,6 +108,6 @@ export default function Hero() {
                 </div>
             </div>
         </>
-      
+
     )
 }

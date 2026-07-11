@@ -6,7 +6,7 @@ export default function AuthLayout({
 }) {
     return (
         <div
-            className="min-h-screen flex justify-center md:justify-start items-center bg-cover bg-center bg-[url('/auth_page_bg.png')]"
+            className="min-h-screen flex justify-center md:justify-start items-center bg-cover bg-center"
         >
             <div className="w-full flex justify-center items-center">
                 {children}

@@ -126,102 +126,130 @@ export default function ForgetPassword() {
   }
 
   return (
-    <div className="max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="rounded border bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold mb-4">Reset Password</h1>
-        <p className="mb-6 text-gray-600">Enter your email to receive an OTP, then set a new password.</p>
+    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-semibold mb-8 text-center">Reset Password</h1>
 
-        {message ? (
-          <div className={`mb-6 rounded border px-4 py-3 ${messageType === "success" ? "border-green-200 bg-green-50 text-green-700" : "border-red-200 bg-red-50 text-red-700"}`}>
-            {message}
-          </div>
-        ) : null}
-
-        {stage === "email" ? (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSending}
-              className="inline-flex items-center justify-center rounded bg-gray-900 px-4 py-2 text-white hover:bg-black disabled:opacity-50"
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <aside className="md:col-span-1 bg-white p-6 border rounded">
+          <nav className="space-y-3">
+            <a
+              href="/profile"
+              className="w-full block text-left px-4 py-3 rounded border border-dashed border-gray-300 text-gray-700 hover:bg-gray-50"
             >
-              {isSending ? "Sending..." : "Send OTP"}
-            </button>
-          </form>
-        ) : stage === "verify" ? (
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input type="email" value={email} disabled className="mt-1 block w-full border rounded bg-gray-100 px-3 py-2" />
+              Back to Profile
+            </a>
+            <div className="border-t pt-3 mt-3">
+              <p className="text-sm text-gray-600 px-2">Current Step:</p>
+              <p className="text-sm font-medium text-gray-900 px-2 mt-2">
+                {stage === "email" ? "1. Enter Email" : stage === "verify" ? "2. Verify OTP" : "3. Complete"}
+              </p>
             </div>
+          </nav>
+        </aside>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">OTP</label>
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                placeholder="Enter OTP"
-              />
+        <main className="md:col-span-3 bg-white p-6 border rounded">
+          {message ? (
+            <div className={`mb-4 rounded border p-4 ${messageType === "success" ? "border-green-200 bg-green-50 text-green-700" : "border-red-200 bg-red-50 text-red-700"}`}>
+              {message}
             </div>
+          ) : null}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">New password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                placeholder="New password"
-              />
-            </div>
+          {stage === "email" ? (
+            <section>
+              <h2 className="text-xl font-medium mb-4">Enter Your Email</h2>
+              <p className="mb-4 text-gray-600">Enter your email address to receive an OTP.</p>
+              <form onSubmit={handleSendOtp} className="space-y-4 max-w-xl">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1 block w-full border rounded px-3 py-2"
+                    placeholder="you@example.com"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Confirm new password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full border rounded px-3 py-2"
-                placeholder="Confirm new password"
-              />
-            </div>
+                <div>
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded hover:bg-black disabled:opacity-50"
+                  >
+                    {isSending ? "Sending..." : "Send OTP"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          ) : stage === "verify" ? (
+            <section>
+              <h2 className="text-xl font-medium mb-4">Verify OTP & Reset Password</h2>
+              <form onSubmit={handleResetPassword} className="space-y-4 max-w-xl">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <input type="email" value={email} disabled className="mt-1 block w-full border rounded bg-gray-100 px-3 py-2" />
+                </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="inline-flex items-center justify-center rounded bg-gray-900 px-4 py-2 text-white hover:bg-black disabled:opacity-50"
-              >
-                {isSubmitting ? "Resetting..." : "Reset Password"}
-              </button>
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={!!(cooldownEnd && cooldownEnd > Date.now()) || isSending}
-                className="inline-flex items-center justify-center rounded border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
-              >
-                {isSending ? "Sending..." : cooldownEnd && cooldownEnd > Date.now() ? `Resend in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2,"0")}` : "Resend OTP"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div>
-            <p className="mb-4 text-gray-700">Your password has been reset successfully.</p>
-            <a href="/login" className="text-blue-600 underline">Go to login</a>
-          </div>
-        )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">OTP</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="mt-1 block w-full border rounded px-3 py-2"
+                    placeholder="Enter OTP"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">New password</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="mt-1 block w-full border rounded px-3 py-2"
+                    placeholder="New password"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Confirm new password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="mt-1 block w-full border rounded px-3 py-2"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded hover:bg-black disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Resetting..." : "Reset Password"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={!!(cooldownEnd && cooldownEnd > Date.now()) || isSending}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {isSending ? "Sending..." : cooldownEnd && cooldownEnd > Date.now() ? `Resend in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2,"0")}` : "Resend OTP"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          ) : (
+            <section>
+              <h2 className="text-xl font-medium mb-4">Password Reset Successful</h2>
+              <p className="mb-6 text-gray-700">Your password has been reset successfully. You can now log in with your new password.</p>
+              <a href="/login" className="inline-flex items-center px-4 py-2 bg-gray-900 text-white rounded hover:bg-black">Go to Login</a>
+            </section>
+          )}
+        </main>
       </div>
     </div>
   )
