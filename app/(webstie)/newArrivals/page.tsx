@@ -1,113 +1,140 @@
-
+"use client"
 import Link from "next/link"
-const Products = [
-    {
-        ProductId: "Saree%201",
-        Product_name: "Silk Saree 1",
-        Product_price: "$400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%202",
-        Product_name: "Silk Saree 2",
-        Product_price: "$500",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%203",
-        Product_name: "Silk Saree 3",
-        Product_price: "$600",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%204",
-        Product_name: "Silk Saree 4",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Kurti%202",
-        Product_name: "Kurti 2",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%201",
-        Product_name: "Silk Saree 1",
-        Product_price: "$400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%202",
-        Product_name: "Silk Saree 2",
-        Product_price: "$500",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%203",
-        Product_name: "Silk Saree 3",
-        Product_price: "$600",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%204",
-        Product_name: "Silk Saree 4",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Kurti%202",
-        Product_name: "Kurti 2",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%201",
-        Product_name: "Silk Saree 1",
-        Product_price: "$400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%202",
-        Product_name: "Silk Saree 2",
-        Product_price: "$500",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%203",
-        Product_name: "Silk Saree 3",
-        Product_price: "$600",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Saree%204",
-        Product_name: "Silk Saree 4",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    },
-    {
-        ProductId: "Kurti%202",
-        Product_name: "Kurti 2",
-        Product_price: "8400",
-        Product_image: "/Test_saree.png",
-        Product_images: ["/Test_saree.png", "/Test_saree.png"]
-    }
-]
+import { GetNewArrivals } from "@/lib/api"
+import { useState, useEffect } from "react"
+
+interface Product {
+    id: string
+    product_name: string
+    product_price: string
+    image1_url: string
+    product_images: string[]
+}
+
+// const Products = [
+//     {
+//         ProductId: "Saree%201",
+//         Product_name: "Silk Saree 1",
+//         Product_price: "$400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%202",
+//         Product_name: "Silk Saree 2",
+//         Product_price: "$500",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%203",
+//         Product_name: "Silk Saree 3",
+//         Product_price: "$600",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%204",
+//         Product_name: "Silk Saree 4",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Kurti%202",
+//         Product_name: "Kurti 2",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%201",
+//         Product_name: "Silk Saree 1",
+//         Product_price: "$400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%202",
+//         Product_name: "Silk Saree 2",
+//         Product_price: "$500",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%203",
+//         Product_name: "Silk Saree 3",
+//         Product_price: "$600",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%204",
+//         Product_name: "Silk Saree 4",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Kurti%202",
+//         Product_name: "Kurti 2",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%201",
+//         Product_name: "Silk Saree 1",
+//         Product_price: "$400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/saree_icon.png", "/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%202",
+//         Product_name: "Silk Saree 2",
+//         Product_price: "$500",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%203",
+//         Product_name: "Silk Saree 3",
+//         Product_price: "$600",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Saree%204",
+//         Product_name: "Silk Saree 4",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     },
+//     {
+//         ProductId: "Kurti%202",
+//         Product_name: "Kurti 2",
+//         Product_price: "8400",
+//         Product_image: "/Test_saree.png",
+//         Product_images: ["/Test_saree.png", "/Test_saree.png"]
+//     }
+// ]
 export default function NewArrivals() {
+    const [Products, setProducts] = useState<Product[]>([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await GetNewArrivals();
+                setProducts(Array.isArray(data) ? data : []);
+                console.log("Fetched products:", data);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     return (
         <>
             <section id="hero" className="
@@ -132,11 +159,11 @@ bg-[#FCFAF7]
             </section>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {Products.map((product) => (
-                    <div key={product.Product_name} className="flex flex-col gap-4 border border-gray-300 rounded-lg p-4">
-                        <img src={product.Product_image} alt={product.Product_name} className="w-full h-auto rounded-lg" />
-                        <div className="text-body-2 font-medium">{product.Product_name}</div>
-                        <div className="text-body-3 text-gray-500">{product.Product_price}</div>
-                        <Link href={`/collections/${product.ProductId}/products/${product.Product_name}`}>View Details
+                    <div key={product.id} className="flex flex-col gap-4 border border-gray-300 rounded-lg p-4">
+                        <img src={product.image1_url} alt={product.product_name} className="w-full h-auto rounded-lg" />
+                        <div className="text-body-2 font-medium">{product.product_name}</div>
+                        <div className="text-body-3 text-gray-500">{product.product_price}</div>
+                        <Link href={`/collections/${product.id}/products/${product.product_name}`}>View Details
                         </Link>
                     </div>
                 ))}
