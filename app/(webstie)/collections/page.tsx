@@ -1,53 +1,67 @@
+"use client"
 import CollectionHeader from "./[collectionsName]/Collection_header";
 import CollectionProducts from "./[collectionsName]/Product_grid";
 import Filter_bar from "./[collectionsName]/FilterBar";
 import MobileFilterDrawer from "./[collectionsName]/MobileFilterDrawer";
 import product from "./[collectionsName]/products/page";
+import { fetchProducts } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { get } from "http";
+import { useParams } from "next/navigation";
+
+interface Products {
+    id: string
+    product_name: string
+    product_price: string
+    image1_url: string
+    product_images: string[]
+}
+
 const headerLists = {
-    sarees: [
+    Saree: [
         { name: "Casual Saree" },
         { name: "Formal Saree" },
         { name: "Party Saree" },
         { name: "Wedding Saree" },
     ],
 
-    kurtis: [
+    Kurti: [
         { name: "Casual Kurtis" },
         { name: "Formal Kurtis" },
         { name: "Party Kurtis" },
         { name: "Wedding Kurtis" },
     ],
 
-    lehengas: [
+    Lehenga: [
         { name: "Casual Lehengas" },
         { name: "Formal Lehengas" },
         { name: "Party Lehengas" },
         { name: "Wedding Lehengas" },
     ],
 
-    unstich: [
+    Unstitched: [
         { name: "Casual Unstitched" },
         { name: "Formal Unstitched" },
         { name: "Party Unstitched" },
         { name: "Wedding Unstitched" },
     ],
-    bridal: [
+    Bridal: [
         { name: "Bridal Sarees" },
         { name: "Bridal Kurtis" },
         { name: "Bridal Lehengas" },
         { name: "Bridal Unstitched" },
     ],
-    beauty: [
+    Beauty: [
         { name: "Beauty 1" },
         { name: "Beauty 2" },
         { name: "Beauty 3" },
         { name: "Beauty 4" },
     ],
-    lingerie: [
-        { name: "Linegerie 1" },
-        { name: "Linegerie 2" },
-        { name: "Linegerie 3" },
-        { name: "Linegerie 4" },
+    Lingerie: [
+        { name: "Lingerie 1" },
+        { name: "Lingerie 2" },
+        { name: "Lingerie 3" },
+        { name: "Lingerie 4" },
     ],
     collections: [
         { name: "Sarees" },
@@ -112,11 +126,31 @@ const products_grid = {
     })),
     
 };
-export default async function Collection(){
+export default function Collection(){
+
     const collectionName = "collections";
-    const products = products_grid[collectionName as keyof typeof products_grid];
-    const headerList = headerLists[collectionName as keyof typeof headerLists];
+
+    const params = useParams();
+
+    const [products, setProducts] = useState<Products[]>([]);
+    
     const categories = headerLists[collectionName as keyof typeof headerLists];
+
+
+    useEffect(() => {
+        const getProducts = async () => {
+            try {
+                const data = await fetchProducts(collectionName);
+                console.log("Fetched products:", data);
+                setProducts(Array.isArray(data)? data : []);
+            } catch (error) {
+                console.error("Error fetching the products:", error);
+            }
+            
+        }
+        getProducts();
+    },[])
+
     return (
 
         <div className="container mx-auto px-4">

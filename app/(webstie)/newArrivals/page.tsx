@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 
 interface Product {
     id: string
+    product: string
     product_name: string
     product_price: string
     image1_url: string
@@ -163,7 +164,7 @@ bg-[#FCFAF7]
                         <img src={product.image1_url} alt={product.product_name} className="w-full h-auto rounded-lg" />
                         <div className="text-body-2 font-medium">{product.product_name}</div>
                         <div className="text-body-3 text-gray-500">{product.product_price}</div>
-                        <Link href={`/collections/${product.id}/products/${product.product_name}`}>View Details
+                        <Link href={`/collections/${product.product || "default"}/products/${product.id}`}>View Details
                         </Link>
                     </div>
                 ))}

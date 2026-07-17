@@ -1,57 +1,62 @@
 "use client";
 
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 
 import { Button } from "@/app/(webstie)/_components/ui/button";
-import { BoxIcon, Check } from "lucide-react";
-import { Share } from "next/font/google";
-import { Heart } from "lucide-react";
-import { Minus, Plus } from "lucide-react";
-import { ShoppingCart } from "lucide-react";
-import { Share2 } from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { features } from "process";
+import { fetchProductById } from "@/lib/api";
 import RelatedProducts from "./RelatedProduct";
-const Products = [
-  {
-    ProductId: "Saree%201",
-    Product_name: "Silk Saree 1",
-    Product_price: "$400",
-    Product_image: "/Test_saree.png",
-    Product_images: ["/saree_icon.png", "/Test_Lehenga.png", "/Test_saree.png"]
-  },
-  {
-    ProductId: "Saree%202",
-    Product_name: "Silk Saree 2",
-    Product_price: "$500",
-    Product_image: "/Test_saree.png",
-    Product_images: ["/Test_Lehenga.png", "/Test_saree.png"]
-  },
-  {
-    ProductId: "Saree%203",
-    Product_name: "Silk Saree 3",
-    Product_price: "$600",
-    Product_image: "/Test_saree.png",
-    Product_images: ["/bridal_icon.png", "/Test_saree.png"]
-  },
-  {
-    ProductId: "Saree%204",
-    Product_name: "Silk Saree 4",
-    Product_price: "8400",
-    Product_image: "/Test_saree.png",
-    Product_images: ["/Test_kurti.png", "/Test_saree.png"]
-  },
-  {
-    ProductId: "Kurti%202",
-    Product_name: "Kurti 2",
-    Product_price: "8400",
-    Product_image: "/Test_saree.png",
-    Product_images: ["/Test_kurti.png", "/Test_saree.png"]
-  }
-]
+
+interface Product {
+  id: number;
+  product: string;
+  product_name: string;
+  product_price: number;
+  image1_url: string;
+  image2_url?: string;
+  image3_url?: string;
+  RelatedProducts?: Product[];
+}
+// const Products = [
+//   {
+//     id: "Saree%201",
+//     product_name: "Silk Saree 1",
+//     product_price: "$400",
+//     product_image: "/Test_saree.png",
+//     product_images: ["/saree_icon.png", "/Test_Lehenga.png", "/Test_saree.png"]
+//   },
+//   {
+//     id: "Saree%202",
+//     product_name: "Silk Saree 2",
+//     product_price: "$500",
+//     product_image: "/Test_saree.png",
+//     product    _images: ["/Test_Lehenga.png", "/Test_saree.png"]
+//   },
+//   {
+//     ProductId: "Saree%203",
+//     Product_name: "Silk Saree 3",
+//     Product_price: "$600",
+//     Product_image: "/Test_saree.png",
+//     Product_images: ["/bridal_icon.png", "/Test_saree.png"]
+//   },
+//   {
+//     ProductId: "Saree%204",
+//     Product_name: "Silk Saree 4",
+//     Product_price: "8400",
+//     Product_image: "/Test_saree.png",
+//     Product_images: ["/Test_kurti.png", "/Test_saree.png"]
+//   },
+//   {
+//     ProductId: "Kurti%202",
+//     Product_name: "Kurti 2",
+//     Product_price: "8400",
+//     Product_image: "/Test_saree.png",
+//     Product_images: ["/Test_kurti.png", "/Test_saree.png"]
+//   }
+// ]
 export default function Product() {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -59,8 +64,28 @@ export default function Product() {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedSize, setSelectedSize] = useState("M");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [Products, setProducts] = useState<Product[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
-  const { productId } = useParams();
+
+  const { productId, collectionsName } = useParams<{
+    productId: string;
+    collectionsName: string;
+  }>();
+  console.log("Product ID:", productId);
+  console.log("Collection Name:", collectionsName); 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const data = await fetchProductById(productId, collectionsName);
+      console.log(data);
+      if (data) {
+        setCurrentImageIndex(0);
+        setProducts([data]);
+        setRelatedProducts(data.RelatedProducts || []); // Reset the image index when the product changes
+      }
+    }
+    fetchProduct();
+  }, [productId]);
 
   console.log(productId);
   const handleAddToCart = async () => {
@@ -96,13 +121,17 @@ export default function Product() {
       setQuantity((prev) => prev - 1);
     }
   };
-  const selectedProduct = Products.find(
-    (product) => product.ProductId === productId
-  );
+  const selectedProduct = Products[0];
+  
   if (!selectedProduct) {
     return <div>Product not found</div>;
   }
-
+  const images = [
+    selectedProduct.image1_url,
+    selectedProduct.image2_url,
+    selectedProduct.image3_url,
+  ].filter(Boolean);
+  
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* <ProductBreadcrumb /> */}
@@ -112,13 +141,8 @@ export default function Product() {
           <div className="w-full max-w-[500px] mx-auto flex flex-col items-center px-4">
             <div className="rounded-xl shadow-lg overflow-hidden mb-4 w-full relative">
               <Image
-                src={
-                  // fall back to a single image if Product_images isn't present
-                  (selectedProduct as any).Product_images
-                    ? (selectedProduct as any).Product_images[currentImageIndex]
-                    : (selectedProduct as any).Product_image
-                }
-                alt={selectedProduct.Product_name}
+                src={images[currentImageIndex] ?? "/placeholder.png"}
+                alt={selectedProduct.product_name}
                 width={600}
                 height={600}
                 className="w-full h-auto object-cover rounded-xl"
@@ -128,9 +152,7 @@ export default function Product() {
               <button
                 type="button"
                 onClick={() => {
-                  const len = ((selectedProduct as any).Product_images || [
-                    (selectedProduct as any).Product_image,
-                  ]).length;
+                  const len = images.length;
                   setCurrentImageIndex((i) => (i - 1 + len) % len);
                 }}
                 className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 rounded-full p-1 shadow hover:bg-white"
@@ -143,9 +165,7 @@ export default function Product() {
               <button
                 type="button"
                 onClick={() => {
-                  const len = ((selectedProduct as any).Product_images || [
-                    (selectedProduct as any).Product_image,
-                  ]).length;
+                  const len = images.length;
                   setCurrentImageIndex((i) => (i + 1) % len);
                 }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 rounded-full p-1 shadow hover:bg-white"
@@ -155,33 +175,27 @@ export default function Product() {
               </button>
             </div>
             <div className="flex gap-3 mt-4">
-              {selectedProduct.Product_images.map((product) => (
+              {images.map((image, index) => (
                 <div
-                  key={product}
-                  className="cursor-pointer border rounded-md overflow-hidden"
-                  onClick={() => {
-                    const len = ((selectedProduct as any).Product_images || [
-                      (selectedProduct as any).Product_image,
-                    ]).length;
-                    setCurrentImageIndex((i) => (i - 1 + len) % len);
-                  }}
+                    key={index}
+                    className="cursor-pointer border rounded-md overflow-hidden"
+                    onClick={() => setCurrentImageIndex(index)}
                 >
-                  <Image
-                    src={product}
-                    alt="More product image"
-                    width={80}
-                    height={100}
-                    className="object-cover hover:opacity-80"
-                  />
+                    <Image
+                        src={image ?? "/placeholder.png"}
+                        alt="Product"
+                        width={80}
+                        height={100}
+                    />
                 </div>
-              ))}
+            ))}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            {selectedProduct.Product_name}
+            {selectedProduct.product_name}
           </h1>
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-1">
@@ -196,7 +210,7 @@ export default function Product() {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              {selectedProduct.Product_price}
+              {selectedProduct.product_price}
             </span>
           </div>
 
@@ -326,7 +340,7 @@ export default function Product() {
         </div>
       </div>
       <span className="text-lg font-bold">Related Products</span>
-      <RelatedProducts productList={Products} />
+      <RelatedProducts productList={relatedProducts} />
     </div>
   );
 }
