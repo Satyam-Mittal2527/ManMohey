@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 
 interface Products {
     id: string
+    product: string
     product_name: string
     product_price: string
     image1_url: string
