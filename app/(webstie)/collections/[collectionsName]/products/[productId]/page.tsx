@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-
 import { Button } from "@/app/(webstie)/_components/ui/button";
 import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { fetchProductById } from "@/lib/api";
+import {addToCart} from "@/lib/checkout";
 import RelatedProducts from "./RelatedProduct";
 
 interface Product {
@@ -88,26 +88,42 @@ export default function Product() {
   }, [productId]);
 
   console.log(productId);
-  const handleAddToCart = async () => {
+const handleAddToCart = async () => {
+  console.log(productId, quantity);
+  try {
     setIsAdding(true);
+    const response = await addToCart(productId, quantity, selectedSize)
+    console.log("Cart Updated:", response);
+    // const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/items`, {
+    //   method: "POST",
+    //   credentials: "include", // sends auth cookies
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     product_id: productId,
+    //     quantity: quantity,
+    //   }),
+    // });
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    // for (let i = 0; i < quantity; i++) {
-    //   addToCart({
-    //     id: product.id,
-    //     name: product.name,
-    //     price: product.price,
-    //     image: product.image,
-    //     quantity: 1,
-    //   });
+    // if (!response.ok) {
+    //   throw new Error("Failed to add item to cart");
     // }
 
-    setIsAdding(false);
-    setJustAdded(true);
+    // const data = await response.json();
 
+    // console.log("Cart Updated:", data);
+
+    setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2000);
-  };
+
+  } catch (error) {
+    console.error(error);
+    alert("Unable to add item to cart.");
+  } finally {
+    setIsAdding(false);
+  }
+};
 
   const handleBuyNow = () => {
     handleAddToCart();

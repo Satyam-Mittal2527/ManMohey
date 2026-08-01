@@ -1,67 +1,137 @@
 "use client"
 
 import React, { useMemo, useState } from "react";
-const cart_items= [
-    {
-        product: "sarees",
-        name: "Saree",
-        image: "/Test_saree.png",
-        price: "₹999",
-    },
-    {
-        product: "kurtis",
-        name: "Kurti",
-        image: "/Test_saree.png",
-        price: "₹799",
-    },
-    {
-        product: "Lehenga",
-        name: "Lehenga",
-        image: "/Test_saree.png",
-        price: "₹1999",
-    },
-    {
-        product: "Unstitched",
-        name: "Unstitched",
-        image: "/Test_saree.png",
-        price: "₹499",
-    },
-  
+import { useEffect } from "react";
+import { Heart, Plus as PlusIcon, Minus as DashIcon, Trash2 } from "lucide-react";
+import { getCart, updateCartItem, removeCartItem } from "@/lib/checkout";
+interface CartItem {
+    id: number;
+    productId: number;
+    name: string;
+    variant: string | null;
+    price: number;
+    qty: number;
+    img: string;
+}
+// const cart_items = [
+//     {
+//         product: "sarees",
+//         name: "Saree",
+//         image: "/Test_saree.png",
+//         price: "₹999",
+//     },
+//     {
+//         product: "kurtis",
+//         name: "Kurti",
+//         image: "/Test_saree.png",
+//         price: "₹799",
+//     },
+//     {
+//         product: "Lehenga",
+//         name: "Lehenga",
+//         image: "/Test_saree.png",
+//         price: "₹1999",
+//     },
+//     {
+//         product: "Unstitched",
+//         name: "Unstitched",
+//         image: "/Test_saree.png",
+//         price: "₹499",
+//     },
 
-];
+
+// ];
 export default function cart() {
-    const [cartItems, setCartItems] = useState(() => cart_items.map((c, idx) => ({
-        id: idx + 1,
-        name: c.name,
-        variant: c.product || '',
-        // parse numeric price from strings like "₹999"
-        price: Number(String(c.price).replace(/[^0-9.]/g, '')) || 0,
-        qty: 1,
-        img: c.image || ''
-    })));
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const increment = (id: number) => {
-        setCartItems((items) => items.map(i => i.id === id ? { ...i, qty: i.qty + 1 } : i));
-    };
-    const decrement = (id: number) => {
-        setCartItems((items) => items.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty - 1) } : i));
-    };
-    const setQty = (id: number, val: number) => {
-        const qty = isNaN(val) ? 1 : Math.max(1, Math.floor(val));
-        setCartItems((items) => items.map(i => i.id === id ? { ...i, qty } : i));
+    const increment = async (itemId: number) => {
+        const item = cartItems.find(i => i.id === itemId);
+        if (!item) return;
+        
+        try {
+            await updateCartItem(itemId, item.qty + 1);
+            setCartItems(cartItems.map(item =>
+                item.id === itemId ? { ...item, qty: item.qty + 1 } : item
+            ));
+        } catch (error) {
+            console.error("Failed to increment:", error);
+        }
     };
 
-    const subtotal = useMemo(() => cartItems.reduce((s, it) => s + it.price * it.qty, 0), [cartItems]);
+    const decrement = async (itemId: number) => {
+        const item = cartItems.find(i => i.id === itemId);
+        if (!item || item.qty <= 1) return;
+        
+        try {
+            await updateCartItem(itemId, item.qty - 1);
+            setCartItems(cartItems.map(item =>
+                item.id === itemId && item.qty > 1 ? { ...item, qty: item.qty - 1 } : item
+            ));
+        } catch (error) {
+            console.error("Failed to decrement:", error);
+        }
+    };
+
+    const setQty = async (itemId: number, newQty: number) => {
+        if (newQty < 1) return;
+        
+        try {
+            await updateCartItem(itemId, newQty);
+            setCartItems(cartItems.map(item =>
+                item.id === itemId ? { ...item, qty: newQty } : item
+            ));
+        } catch (error) {
+            console.error("Failed to update quantity:", error);
+        }
+    };
+
+    const removeItem = async (itemId: number) => {
+        try {
+            await removeCartItem(itemId);
+            setCartItems(cartItems.filter(item => item.id !== itemId));
+        } catch (error) {
+            console.error("Failed to remove item:", error);
+        }
+    };
+
+    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0)
     const tax = +(subtotal * 0.08).toFixed(2);
     const promo = 56; // fixed example promo
     const total = +(subtotal + tax - promo).toFixed(2);
+    const loadCart = async () => {
+        try {
+            setLoading(true);
+
+            const data = await getCart();
+            console.log("Cart data:", data);
+            setCartItems(
+                data.items.map((item: any) => ({
+                    id: item.id,
+                    productId: item.product_id,
+                    name: item.name,
+                    variant: item.size,
+                    price: Number(item.price),
+                    qty: item.quantity,
+                    img: item.image,
+                }))
+            );
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        loadCart();
+    }, []);
 
     return (
         <main id="main" className="bg-gray-50 min-h-screen">
 
             <section className="bg-white py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                 
+
                     <h1 className="text-2xl font-semibold text-gray-900">Your cart</h1>
                     <p className="text-sm text-gray-600 mt-1">{cartItems.reduce((s, it) => s + it.qty, 0)} items · ready to ship. Free delivery on this order. Estimated arrival 21 – 23 May.</p>
                 </div>
@@ -82,19 +152,25 @@ export default function cart() {
                                             <div className="text-sm text-gray-500">{item.variant}</div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => decrement(item.id)} aria-label="Decrease" className="h-8 w-8 flex items-center justify-center border rounded">−</button>
+                                            <button onClick={() => decrement(item.id)} aria-label="Decrease" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100">
+                                                <DashIcon size={18} />
+                                            </button>
                                             <input type="number" value={item.qty} onChange={(e) => setQty(item.id, Number(e.target.value))} aria-label="Quantity" className="w-16 text-center border rounded h-8" min={1} />
-                                            <button onClick={() => increment(item.id)} aria-label="Increase" className="h-8 w-8 flex items-center justify-center border rounded">+</button>
+                                            <button onClick={() => increment(item.id)} aria-label="Increase" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100">
+                                                <PlusIcon size={18} />
+                                            </button>
                                         </div>
                                         <div className="w-28 text-right font-medium text-gray-900">₹{(item.price * item.qty).toFixed(2)}</div>
-                                        <button className="text-red-500 hover:text-red-700 ml-4" aria-label="Remove">✕</button>
+                                        <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 ml-4 transition-colors" aria-label="Remove">
+                                            <Trash2 size={20} />
+                                        </button>
                                     </article>
                                 ))}
                             </div>
 
                             <div className="mt-6 flex gap-3 flex-wrap">
-                                <a href="/shop" className="px-4 py-2 border rounded text-gray-700">← Continue shopping</a>
-                               
+                                <a href="/collections" className="px-4 py-2 border rounded text-gray-700">← Continue shopping</a>
+
                             </div>
                         </div>
 
