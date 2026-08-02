@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, use } from "react"
-import { useRouter } from "next/router";
+
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../(webstie)/_components/ui/button";
@@ -55,7 +55,7 @@ const categories = [
   },
 ];
 export default function Header() {
-  const router = useRouter(); 
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
@@ -374,7 +374,7 @@ export default function Header() {
                         }
                         setAndPersistUser(null);
                         setProfilePageClick(false);
-                        router.push('/');
+                      
                       }}
                       className="mt-2 w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-slate-100"
                     >
