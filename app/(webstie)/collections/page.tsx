@@ -134,20 +134,26 @@ export default function Collection(){
     const params = useParams();
 
     const [products, setProducts] = useState<Products[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     
     const categories = headerLists[collectionName as keyof typeof headerLists];
 
 
     useEffect(() => {
         const getProducts = async () => {
+            setIsLoading(true);
+            setErrorMessage(null);
             try {
                 const data = await fetchProducts(collectionName);
                 console.log("Fetched products:", data);
-                setProducts(Array.isArray(data)? data : []);
+                setProducts(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error("Error fetching the products:", error);
+                setErrorMessage("Unable to load products right now.");
+            } finally {
+                setIsLoading(false);
             }
-            
         }
         getProducts();
     },[])
@@ -160,8 +166,23 @@ export default function Collection(){
                 <Filter_bar CategoryList={categories} />
                 <main className="flex-1">
                     <div className="flex flex-col gap-4 w-full">
-                        {products && (
-                            <CollectionProducts ProductsList={products} CollectionName = {collectionName}/>
+                        {isLoading ? (
+                            <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
+                                {Array.from({ length: 8 }).map((_, index) => (
+                                    <div key={index} className="flex flex-col gap-4 rounded-lg border border-gray-200 p-4 animate-pulse">
+                                        <div className="h-[360px] rounded-md bg-slate-200" />
+                                        <div className="h-4 w-3/4 rounded bg-slate-200" />
+                                        <div className="h-4 w-1/2 rounded bg-slate-200" />
+                                        <div className="h-10 w-24 rounded bg-slate-200" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : errorMessage ? (
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+                                {errorMessage}
+                            </div>
+                        ) : (
+                            <CollectionProducts ProductsList={products} CollectionName={collectionName} />
                         )}
                     </div>
                 </main>
