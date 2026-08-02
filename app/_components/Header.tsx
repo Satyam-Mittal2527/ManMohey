@@ -373,7 +373,7 @@ export default function Header() {
                         }
                         setAndPersistUser(null);
                         setProfilePageClick(false);
-                        window.location.href = '/';
+                        // window.location.href = '/';
                       }}
                       className="mt-2 w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-slate-100"
                     >
