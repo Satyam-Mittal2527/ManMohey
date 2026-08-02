@@ -189,7 +189,7 @@ export default function cart() {
 
                             <div className="flex justify-between items-center mt-4 border-t pt-4 text-lg font-semibold"><span>Total</span><span>₹{total.toFixed(2)}</span></div>
 
-                            <a href="#" className="block text-center mt-6 w-full bg-indigo-600 text-white px-4 py-3 rounded">Proceed to checkout →</a>
+                            <a href="/checkout" className="block text-center mt-6 w-full bg-indigo-600 text-white px-4 py-3 rounded">Proceed to checkout →</a>
 
                             <div className="flex justify-center gap-3 mt-6 flex-wrap">
                                 <span className="text-xs text-gray-500 px-3 py-1 bg-gray-50 rounded">VISA</span>
