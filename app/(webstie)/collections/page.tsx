@@ -3,167 +3,97 @@ import CollectionHeader from "./[collectionsName]/Collection_header";
 import CollectionProducts from "./[collectionsName]/Product_grid";
 import Filter_bar from "./[collectionsName]/FilterBar";
 import MobileFilterDrawer from "./[collectionsName]/MobileFilterDrawer";
-import product from "./[collectionsName]/products/page";
-import { fetchProducts } from "@/lib/api";
+import { fetchCollectionPage } from "@/lib/api";
 import { useState, useEffect } from "react";
-import { get } from "http";
 import { useParams } from "next/navigation";
 
-interface Products {
-    id: string
-    product: string
-    product_name: string
-    product_price: string
-    image1_url: string
-    product_images: string[]
+interface ProductImage {
+    id: number;
+    image_url: string;
+    public_url: string;
+    display_order: number;
+}
+interface FilterOption {
+    id: number;
+    name: string;
+    count: number;
 }
 
-const headerLists = {
-    Saree: [
-        { name: "Casual Saree" },
-        { name: "Formal Saree" },
-        { name: "Party Saree" },
-        { name: "Wedding Saree" },
-    ],
+interface FilterGroup {
+    name: string;
+    options: FilterOption[];
+}
 
-    Kurti: [
-        { name: "Casual Kurtis" },
-        { name: "Formal Kurtis" },
-        { name: "Party Kurtis" },
-        { name: "Wedding Kurtis" },
-    ],
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    count?: number;
+}
+interface Product {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    sale_price: number | null;
+    featured: boolean;
+    active: boolean;
 
-    Lehenga: [
-        { name: "Casual Lehengas" },
-        { name: "Formal Lehengas" },
-        { name: "Party Lehengas" },
-        { name: "Wedding Lehengas" },
-    ],
+    category_id: number;
 
-    Unstitched: [
-        { name: "Casual Unstitched" },
-        { name: "Formal Unstitched" },
-        { name: "Party Unstitched" },
-        { name: "Wedding Unstitched" },
-    ],
-    Bridal: [
-        { name: "Bridal Sarees" },
-        { name: "Bridal Kurtis" },
-        { name: "Bridal Lehengas" },
-        { name: "Bridal Unstitched" },
-    ],
-    Beauty: [
-        { name: "Beauty 1" },
-        { name: "Beauty 2" },
-        { name: "Beauty 3" },
-        { name: "Beauty 4" },
-    ],
-    Lingerie: [
-        { name: "Lingerie 1" },
-        { name: "Lingerie 2" },
-        { name: "Lingerie 3" },
-        { name: "Lingerie 4" },
-    ],
-    collections: [
-        { name: "Sarees" },
-        { name: "Kurtis" },
-        { name: "Lehengas" },
-        { name: "Unstitched" },
-    ],
-};
+    categories: Category;
 
-const products_grid = {
-    sarees: Array.from({ length: 16 }, (_, index) => ({
-        product: "sarees",
-        name: `Saree ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹999",
-    })),
+    product_images: ProductImage[];
+}
+export default function Collection() {
 
-    kurtis: Array.from({ length: 16 }, (_, index) => ({
-        product: "kurtis",
-        name: `Kurti ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹799",
-    })),
 
-    lehengas: Array.from({ length: 16 }, (_, index) => ({
-        product: "Lehenga",
-        name: `Lehenga ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹1999",
-    })),
-
-    unstich: Array.from({ length: 16 }, (_, index) => ({
-        product: "Unstiched",
-        name: `Unstitched ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-
-    bridal: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Bridal ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    beauty: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Beauty ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    lingerie: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Linegerie ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    collections: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Collection ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    
-};
-export default function Collection(){
-
-    const collectionName = "collections";
 
     const params = useParams();
 
-    const [products, setProducts] = useState<Products[]>([]);
+    const collectionSlug = params.collectionsName as string;
+
+    const [products, setProducts] = useState<Product[]>([]);
+    const [category, setCategory] = useState<Category | null>(null);
+    const [childCategories, setChildCategories] = useState<any[]>([]);
+
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [filterGroups] = useState<FilterGroup[]>([]);
+    const collectionName = category?.name ?? "";
+
     
-    const categories = headerLists[collectionName as keyof typeof headerLists];
 
 
     useEffect(() => {
         const getProducts = async () => {
             setIsLoading(true);
-            setErrorMessage(null);
             try {
-                const data = await fetchProducts(collectionName);
-                console.log("Fetched products:", data);
-                setProducts(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error("Error fetching the products:", error);
-                setErrorMessage("Unable to load products right now.");
-            } finally {
+                const response = await fetchCollectionPage(collectionSlug);
+
+                const data = response.products;
+
+                setProducts(data.products);
+                setCategory(data.category);
+                setChildCategories(data.childCategories);
+            }
+            catch (err) {
+                console.log(err);
+            }
+            finally {
                 setIsLoading(false);
             }
         }
         getProducts();
-    },[])
+
+    }, [collectionSlug]);
 
     return (
 
         <div className="container mx-auto px-4">
             <div className="flex gap-8 md:items-start flex-col md:flex-row">
-                <MobileFilterDrawer CategoryList={categories} />
-                <Filter_bar CategoryList={categories} />
+                <MobileFilterDrawer childCategories={childCategories} filterGroups={filterGroups}/>
+                <Filter_bar childCategories={childCategories} filterGroups={filterGroups}/>
                 <main className="flex-1">
                     <div className="flex flex-col gap-4 w-full">
                         {isLoading ? (

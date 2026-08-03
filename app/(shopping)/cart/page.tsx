@@ -13,34 +13,7 @@ interface CartItem {
     qty: number;
     img: string;
 }
-// const cart_items = [
-//     {
-//         product: "sarees",
-//         name: "Saree",
-//         image: "/Test_saree.png",
-//         price: "₹999",
-//     },
-//     {
-//         product: "kurtis",
-//         name: "Kurti",
-//         image: "/Test_saree.png",
-//         price: "₹799",
-//     },
-//     {
-//         product: "Lehenga",
-//         name: "Lehenga",
-//         image: "/Test_saree.png",
-//         price: "₹1999",
-//     },
-//     {
-//         product: "Unstitched",
-//         name: "Unstitched",
-//         image: "/Test_saree.png",
-//         price: "₹499",
-//     },
 
-
-// ];
 export default function cart() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -97,8 +70,7 @@ export default function cart() {
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0)
     const tax = +(subtotal * 0.08).toFixed(2);
-    const promo = 56; // fixed example promo
-    const total = +(subtotal + tax - promo).toFixed(2);
+    const total = +(subtotal + tax ).toFixed(2);
     const loadCart = async () => {
         try {
             setLoading(true);
@@ -185,7 +157,7 @@ export default function cart() {
                             <div className="flex justify-between py-2 text-sm text-gray-600"><span>Subtotal · {cartItems.reduce((s, it) => s + it.qty, 0)} items</span><span className="font-semibold text-gray-900">₹{subtotal.toFixed(2)}</span></div>
                             <div className="flex justify-between py-2 text-sm text-gray-600"><span>Shipping</span><span className="font-semibold text-emerald-600">Free</span></div>
                             <div className="flex justify-between py-2 text-sm text-gray-600"><span>Estimated tax</span><span className="font-semibold text-gray-900">₹{tax.toFixed(2)}</span></div>
-                            <div className="flex justify-between py-2 text-sm text-gray-600"><span>Promo · WELCOME20</span><span className="font-semibold text-rose-600">−₹{promo.toFixed(2)}</span></div>
+                           
 
                             <div className="flex justify-between items-center mt-4 border-t pt-4 text-lg font-semibold"><span>Total</span><span>₹{total.toFixed(2)}</span></div>
 

@@ -9,53 +9,67 @@ import AuthForm from "../(auth)/AuthPage";
 import Profile from "../(webstie)/profile/page";
 import Orders from "../(webstie)/orders/page";
 import { SendOtp, VerifyOtp, Register_User, GetCurrentUser, Logout } from "@/lib/api";
-
 const categories = [
   {
     name: "Sarees",
-    href: "/collections/Saree",
+    href: "/collections/sarees",
     image: "/saree_icon.png",
-    description: "Timeless elegance in every drape",
+    description: "Shop designer sarees, silk sarees, cotton sarees, bridal sarees and festive ethnic wear for women.",
   },
   {
     name: "Kurtis",
-    href: "/collections/Kurti",
+    href: "/collections/kurtis",
     image: "/kurti_icon.png",
-    description: "Comfort meets style",
+    description: "Explore stylish women's kurtis, cotton kurtas, printed kurtis and daily wear ethnic outfits.",
   },
   {
     name: "Lehengas",
-    href: "/collections/Lehenga",
+    href: "/collections/lehengas",
     image: "/lehenga_icon.png",
-    description: "Celebrate in grace and beauty",
+    description: "Discover bridal lehengas, wedding lehengas, party wear lehengas and festive designer collections.",
   },
   {
-    name: "Unstitch",
-    href: "/collections/Unstitched",
-    image: "/saree_icon.png",
-    description: "Perfect everyday elegance",
+    name: "Unstitched",
+    href: "/collections/unstitched",
+    image: "/unstitched_icon.png",
+    description: "Browse premium unstitched dress materials, salwar suits and fabric collections for custom tailoring.",
   },
   {
-    name: "Bridal",
-    href: "/collections/Bridal",
+    name: "Party Wear",
+    href: "/collections/party-wear",
     image: "/bridal_icon.png",
-    description: "Modern meets traditional",
+    description: "Shop elegant party wear dresses, festive ethnic wear and designer outfits for special occasions.",
   },
   {
-    name: "Beauty",
-    href: "/collections/Beauty",
-    image: "/beauty_icon.png",
-    description: "Modern meets traditional",
+    name: "Blouses",
+    href: "/collections/blouses",
+    image: "/blouses_icon.png",
+    description: "Find ready-made blouses, designer blouse patterns, embroidered blouses and stylish saree blouses.",
   },
   {
-    name: "Lingerie",
-    href: "/collections/Lingerie",
-    image: "/lingerie_icon.png",
-    description: "Modern meets traditional",
+    name: "Winter Collections",
+    href: "/collections/winter-collection",
+    image: "/winter_icon.png",
+    description: "Stay warm with elegant shawls, stoles, woolen ethnic wear and winter fashion essentials for women.",
+    dropdown: true,
   },
 ];
+
+const winterItems = [
+  {
+    name: "Shawl / Stole",
+    href: "/collections/shawl",
+    image: "/shawl_icon.png",
+  },
+  {
+    name: "Woolen",
+    href: "/collections/woolen",
+    image: "/wollen_icon.png",
+  },
+];
+
 export default function Header() {
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
@@ -121,7 +135,7 @@ export default function Header() {
         const ttl = 60; // seconds
         const end = Date.now() + ttl * 1000;
         const key = `MM_otp_cooldown`;
-        try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) {}
+        try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) { }
         setCooldownEnd(end);
         setRemaining(ttl);
       } else {
@@ -257,7 +271,7 @@ export default function Header() {
           if (!formData.email) setformData((s) => ({ ...s, email }));
         }
       }
-    } catch (e) {}
+    } catch (e) { }
 
     if (cooldownEnd && cooldownEnd > Date.now()) {
       interval = setInterval(() => {
@@ -266,7 +280,7 @@ export default function Header() {
         if (diff <= 0) {
           clearInterval(interval);
           setCooldownEnd(null);
-          try { localStorage.removeItem(key); } catch (e) {}
+          try { localStorage.removeItem(key); } catch (e) { }
         }
       }, 1000);
     }
@@ -283,7 +297,7 @@ export default function Header() {
       const ttl = 3600;
       const end = Date.now() + ttl * 1000;
       const key = `MM_otp_cooldown`;
-      try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) {}
+      try { localStorage.setItem(key, JSON.stringify({ email: formData.email, end })); } catch (e) { }
       setCooldownEnd(end);
       setRemaining(ttl);
     } else {
@@ -310,23 +324,81 @@ export default function Header() {
                     className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
                   >
                     {category.image && (
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="w-17 h-20 items-center"
-                      />
+                      <div className="w-16 h-16 flex items-center justify-center">
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
                     )}
                     <span className="text-lg font-medium text-slate-700 hover:text-slate-900">
                       {category.name}
                     </span>
                   </Link>
+                  {category.dropdown && (
+                    <div
+                      className={`
+absolute
+top-full
+left-1/2
+-translate-x-1/2
+mt-4
+
+w-80
+
+rounded-3xl
+bg-white
+
+border border-gray-100
+
+shadow-[0_20px_60px_rgba(0,0,0,0.12)]
+
+opacity-0
+invisible
+translate-y-3
+
+group-hover:opacity-100
+group-hover:visible
+group-hover:translate-y-0
+
+transition-all
+duration-300
+ease-out
+
+overflow-hidden
+
+z-50
+`}
+                    >
+                      {winterItems.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="flex items-center gap-4 p-4 hover:bg-gray-50"
+                        >
+                          <img
+                            src={item.image}
+                            className="w-14 h-14 rounded-lg object-cover"
+                          />
+
+                          <span className="flex-1 text-lg">
+                            {item.name}
+                          </span>
+
+                          <span>
+                            →
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+
                 </div>
               ))}
             </div>
-            {/* <a href="/newArrivals" className="hover:text-slate-900">New Arrivals</a>
-            <a href="/bestSellers" className="hover:text-slate-900">Best Sellers</a>
-            <a href="/sale" className="hover:text-slate-900">Sale</a> */}
-            {/* <button className="hover:text-slate-900" onClick={() => setIsNavBarVisible(!isNavBarVisible)}>Collections</button> */}
+
           </nav>
           <div className="hidden md:flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
             <Search className="md:h-5 md:w-5 text-gray-500" />
@@ -374,7 +446,7 @@ export default function Header() {
                         }
                         setAndPersistUser(null);
                         setProfilePageClick(false);
-                      
+
                       }}
                       className="mt-2 w-full text-left px-2 py-1 text-sm text-red-600 hover:bg-slate-100"
                     >

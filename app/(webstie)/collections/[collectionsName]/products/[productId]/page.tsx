@@ -1,62 +1,50 @@
 "use client";
 
-
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/app/(webstie)/_components/ui/button";
 import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { fetchProductById } from "@/lib/api";
-import {addToCart} from "@/lib/checkout";
+import { addToCart } from "@/lib/checkout";
 import RelatedProducts from "./RelatedProduct";
+
+interface ProductImage {
+  id: number;
+  image_url: string;
+  public_url: string;
+  display_order: number;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 interface Product {
   id: number;
-  product: string;
-  product_name: string;
-  product_price: number;
-  image1_url: string;
-  image2_url?: string;
-  image3_url?: string;
-  RelatedProducts?: Product[];
+  name: string;
+  slug: string;
+
+  short_description: string | null;
+  description: string | null;
+
+  price: number;
+  sale_price: number | null;
+
+  stock: number;
+
+  featured: boolean;
+  active: boolean;
+
+  categories: Category;
+
+  product_images: ProductImage[];
+
+  RelatedProducts: Product[];
 }
-// const Products = [
-//   {
-//     id: "Saree%201",
-//     product_name: "Silk Saree 1",
-//     product_price: "$400",
-//     product_image: "/Test_saree.png",
-//     product_images: ["/saree_icon.png", "/Test_Lehenga.png", "/Test_saree.png"]
-//   },
-//   {
-//     id: "Saree%202",
-//     product_name: "Silk Saree 2",
-//     product_price: "$500",
-//     product_image: "/Test_saree.png",
-//     product    _images: ["/Test_Lehenga.png", "/Test_saree.png"]
-//   },
-//   {
-//     ProductId: "Saree%203",
-//     Product_name: "Silk Saree 3",
-//     Product_price: "$600",
-//     Product_image: "/Test_saree.png",
-//     Product_images: ["/bridal_icon.png", "/Test_saree.png"]
-//   },
-//   {
-//     ProductId: "Saree%204",
-//     Product_name: "Silk Saree 4",
-//     Product_price: "8400",
-//     Product_image: "/Test_saree.png",
-//     Product_images: ["/Test_kurti.png", "/Test_saree.png"]
-//   },
-//   {
-//     ProductId: "Kurti%202",
-//     Product_name: "Kurti 2",
-//     Product_price: "8400",
-//     Product_image: "/Test_saree.png",
-//     Product_images: ["/Test_kurti.png", "/Test_saree.png"]
-//   }
-// ]
+
 export default function Product() {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -64,7 +52,7 @@ export default function Product() {
   const [isLiked, setIsLiked] = useState(false);
   const [selectedSize, setSelectedSize] = useState("M");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [Products, setProducts] = useState<Product[]>([]);
+  const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
 
@@ -72,58 +60,44 @@ export default function Product() {
     productId: string;
     collectionsName: string;
   }>();
-  console.log("Product ID:", productId);
-  console.log("Collection Name:", collectionsName); 
+  // console.log("Product ID:", productId);
+  // console.log("Collection Name:", collectionsName); 
   useEffect(() => {
     const fetchProduct = async () => {
-      const data = await fetchProductById(productId, collectionsName);
-      console.log(data);
-      if (data) {
+      const response = await fetchProductById(productId);
+
+      console.log(response);
+
+      if (response?.product) {
+
         setCurrentImageIndex(0);
-        setProducts([data]);
-        setRelatedProducts(data.RelatedProducts || []); // Reset the image index when the product changes
+
+        setProduct(response.product);
+
+        setRelatedProducts(response.product.RelatedProducts || []);
+
       }
     }
     fetchProduct();
   }, [productId]);
 
   console.log(productId);
-const handleAddToCart = async () => {
-  console.log(productId, quantity);
-  try {
-    setIsAdding(true);
-    const response = await addToCart(productId, quantity, selectedSize)
-    console.log("Cart Updated:", response);
-    // const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/cart/items`, {
-    //   method: "POST",
-    //   credentials: "include", // sends auth cookies
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     product_id: productId,
-    //     quantity: quantity,
-    //   }),
-    // });
+  const handleAddToCart = async () => {
+    console.log(productId, quantity);
+    try {
+      setIsAdding(true);
+      const response = await addToCart(productId, quantity, selectedSize)
+      console.log("Cart Updated:", response);
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 2000);
 
-    // if (!response.ok) {
-    //   throw new Error("Failed to add item to cart");
-    // }
-
-    // const data = await response.json();
-
-    // console.log("Cart Updated:", data);
-
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 2000);
-
-  } catch (error) {
-    console.error(error);
-    alert("Unable to add item to cart.");
-  } finally {
-    setIsAdding(false);
-  }
-};
+    } catch (error) {
+      console.error(error);
+      alert("Unable to add item to cart.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const handleBuyNow = () => {
     handleAddToCart();
@@ -137,17 +111,24 @@ const handleAddToCart = async () => {
       setQuantity((prev) => prev - 1);
     }
   };
-  const selectedProduct = Products[0];
-  
+  const selectedProduct = product;
+
   if (!selectedProduct) {
-    return <div>Product not found</div>;
+
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+
+        <div className="h-10 w-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
+
+      </div>
+    );
+
   }
-  const images = [
-    selectedProduct.image1_url,
-    selectedProduct.image2_url,
-    selectedProduct.image3_url,
-  ].filter(Boolean);
-  
+  const images =
+    selectedProduct.product_images
+      ?.sort((a, b) => a.display_order - b.display_order)
+      .map((img) => img.public_url) || [];
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* <ProductBreadcrumb /> */}
@@ -158,7 +139,7 @@ const handleAddToCart = async () => {
             <div className="rounded-xl shadow-lg overflow-hidden mb-4 w-full relative">
               <Image
                 src={images[currentImageIndex] ?? "/placeholder.png"}
-                alt={selectedProduct.product_name}
+                alt={selectedProduct.name}
                 width={600}
                 height={600}
                 className="w-full h-auto object-cover rounded-xl"
@@ -193,25 +174,25 @@ const handleAddToCart = async () => {
             <div className="flex gap-3 mt-4">
               {images.map((image, index) => (
                 <div
-                    key={index}
-                    className="cursor-pointer border rounded-md overflow-hidden"
-                    onClick={() => setCurrentImageIndex(index)}
+                  key={index}
+                  className="cursor-pointer border rounded-md overflow-hidden"
+                  onClick={() => setCurrentImageIndex(index)}
                 >
-                    <Image
-                        src={image ?? "/placeholder.png"}
-                        alt="Product"
-                        width={80}
-                        height={100}
-                    />
+                  <Image
+                    src={image ?? "/placeholder.png"}
+                    alt="Product"
+                    width={80}
+                    height={100}
+                  />
                 </div>
-            ))}
+              ))}
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
           <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            {selectedProduct.product_name}
+            {selectedProduct.name}
           </h1>
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-1">
@@ -226,14 +207,13 @@ const handleAddToCart = async () => {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              {selectedProduct.product_price}
+              {selectedProduct.sale_price ?? selectedProduct.price}
             </span>
           </div>
 
           <p className="text-muted-foreground leading-relaxed">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-            Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets.
-            It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software including versions of Lorem Ipsum.
+            {selectedProduct.description ??
+              "No description available."}
           </p>
 
           {/* <Separator /> */}
@@ -289,12 +269,6 @@ const handleAddToCart = async () => {
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <Button
                 size="lg"
-                // className={cn(
-                //   "flex-1 transition-all duration-300",
-                //   justAdded
-                //     ? "bg-green-600 text-white hover:bg-green-600"
-                //     : "bg-primary text-primary-foreground hover:bg-primary/90"
-                // )}
                 onClick={handleAddToCart}
                 disabled={isAdding}
               >
@@ -331,14 +305,10 @@ const handleAddToCart = async () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsLiked(!isLiked)}
-              // className={cn(
-              //   "text-muted-foreground hover:text-foreground",
-              //   isLiked && "text-destructive"
-              // )
-              // }
+
               >
                 <Heart
-                // className={cn("h-4 w-4 mr-2", isLiked && "fill-current")}
+
                 />
                 Add to Wishlist
               </Button>

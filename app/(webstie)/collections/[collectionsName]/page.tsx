@@ -1,180 +1,178 @@
-"use client"
-import Collection_header from "./Collection_header";
+"use client";
+
 import CollectionProducts from "./Product_grid";
-import Filter_bar from "./FilterBar"
+import Filter_bar from "./FilterBar";
 import MobileFilterDrawer from "./MobileFilterDrawer";
-import product from "./products/page";
-import { fetchProducts } from "@/lib/api";
+
+import { fetchCollectionPage } from "@/lib/api";
 import { useState, useEffect } from "react";
-import { get } from "http";
 import { useParams } from "next/navigation";
 
-
-const headerLists = {
-    Saree: [
-        { name: "Casual Saree" },
-        { name: "Formal Saree" },
-        { name: "Party Saree" },
-        { name: "Wedding Saree" },
-    ],
-
-    Kurti: [
-        { name: "Casual Kurtis" },
-        { name: "Formal Kurtis" },
-        { name: "Party Kurtis" },
-        { name: "Wedding Kurtis" },
-    ],
-
-    Lehenga: [
-        { name: "Casual Lehengas" },
-        { name: "Formal Lehengas" },
-        { name: "Party Lehengas" },
-        { name: "Wedding Lehengas" },
-    ],
-
-    Unstitched: [
-        { name: "Casual Unstitched" },
-        { name: "Formal Unstitched" },
-        { name: "Party Unstitched" },
-        { name: "Wedding Unstitched" },
-    ],
-    Bridal: [
-        { name: "Bridal Sarees" },
-        { name: "Bridal Kurtis" },
-        { name: "Bridal Lehengas" },
-        { name: "Bridal Unstitched" },
-    ],
-    Beauty: [
-        { name: "Beauty 1" },
-        { name: "Beauty 2" },
-        { name: "Beauty 3" },
-        { name: "Beauty 4" },
-    ],
-    Lingerie: [
-        { name: "Lingerie 1" },
-        { name: "Lingerie 2" },
-        { name: "Lingerie 3" },
-        { name: "Lingerie 4" },
-    ],
-};
-
-interface Products {
-    id: string
-    product: string
-    product_name: string
-    product_price: string
-    image1_url: string
-    product_images: string[]
+interface ProductImage {
+    id: number;
+    image_url: string;
+    public_url: string;
+    display_order: number;
 }
 
-const products_grid = {
-    Saree: Array.from({ length: 16 }, (_, index) => ({
-        product: "Saree",
-        name: `Saree ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹999",
-    })),
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    count?: number;
+}
 
-    Kurti: Array.from({ length: 16 }, (_, index) => ({
-        product: "Kurti",
-        name: `Kurti ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹799",
-    })),
+interface Product {
+    id: number;
+    name: string;
+    slug: string;
+    price: number;
+    sale_price: number | null;
+    featured: boolean;
+    active: boolean;
 
-    Lehenga: Array.from({ length: 16 }, (_, index) => ({
-        product: "Lehenga",
-        name: `Lehenga ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹1999",
-    })),
+    category_id: number;
 
-    Unstitched: Array.from({ length: 16 }, (_, index) => ({
-        product: "Unstitched",
-        name: `Unstitched ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
+    categories: Category;
 
-    Bridal: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Bridal ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    Beauty: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Beauty ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    Lingerie: Array.from({ length: 16 }, (_, index) => ({
-        product: "Bridal",
-        name: `Lingerie ${index + 1}`,
-        image: "/Test_saree.png",
-        price: "₹499",
-    })),
-    
-};
-export default function Collection(){
+    product_images: ProductImage[];
+}
+
+interface FilterOption {
+    id: number;
+    name: string;
+    count: number;
+}
+
+interface FilterGroup {
+    name: string;
+    options: FilterOption[];
+}
+
+interface CollectionResponse {
+    category: Category;
+    childCategories: Category[];
+    filterGroups?: FilterGroup[];
+    products: Product[];
+}
+
+export default function Collection() {
+
     const params = useParams();
+    const collectionSlug = params.collectionsName as string;
 
-    const collectionName = params.collectionsName as string;
+    const [category, setCategory] = useState<Category | null>(null);
+    const [childCategories, setChildCategories] = useState<Category[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
 
-    const [products, setProducts] = useState<Products[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    // const products = products_grid[collectionName as keyof typeof products_grid];
-    const headerList = headerLists[collectionName as keyof typeof headerLists];
-    const categories = headerLists[collectionName as keyof typeof headerLists];
 
     useEffect(() => {
-        const getProducts = async () => {
+
+        const loadCollection = async () => {
+
             setIsLoading(true);
             setErrorMessage(null);
+
             try {
-                const data = await fetchProducts(collectionName);
-                console.log("Fetched products:", data);
-                setProducts(Array.isArray(data)? data : []);
-            } catch (error) {
-                console.error("Error fetching the products:", error);
-                setErrorMessage("Unable to load products right now.");
+
+                const response = await fetchCollectionPage(collectionSlug);
+
+                console.log(response);
+
+                // If your backend wraps the response inside "products"
+                const data: CollectionResponse = response.products;
+
+                setCategory(data.category);
+                setChildCategories(data.childCategories);
+                setProducts(data.products);
+
+                if (data.filterGroups) {
+                    setFilterGroups(data.filterGroups);
+                }
+
+            } catch (err) {
+
+                console.error(err);
+                setErrorMessage("Unable to load collection.");
+
             } finally {
+
                 setIsLoading(false);
+
             }
-            
-        }
-        getProducts();
-    },[])
+
+        };
+
+        loadCollection();
+
+    }, [collectionSlug]);
+
     return (
 
         <div className="container mx-auto px-4">
-            <div className="flex gap-8 md:items-start flex-col md:flex-row">
-                <MobileFilterDrawer CategoryList={categories} />
-                <Filter_bar CategoryList={categories} />
+
+            <div className="flex flex-col gap-8 md:flex-row md:items-start">
+
+                <MobileFilterDrawer
+                    childCategories={childCategories}
+                    filterGroups={filterGroups}
+                />
+
+                <Filter_bar
+                    childCategories={childCategories}
+                    filterGroups={filterGroups}
+                />
+
                 <main className="flex-1">
-                    <div className="flex flex-col gap-4 w-full">
+
+                    <div className="flex flex-col gap-4">
+
                         {isLoading ? (
-                            <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
+
+                            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-8">
+
                                 {Array.from({ length: 8 }).map((_, index) => (
-                                    <div key={index} className="flex flex-col gap-4 rounded-lg border border-gray-200 p-4 animate-pulse">
-                                        <div className="h-[360px] rounded-md bg-slate-200" />
+
+                                    <div
+                                        key={index}
+                                        className="flex flex-col gap-4 rounded-lg border border-gray-200 p-4 animate-pulse"
+                                    >
+                                        <div className="h-[360px] rounded bg-slate-200" />
                                         <div className="h-4 w-3/4 rounded bg-slate-200" />
                                         <div className="h-4 w-1/2 rounded bg-slate-200" />
                                         <div className="h-10 w-24 rounded bg-slate-200" />
                                     </div>
+
                                 ))}
+
                             </div>
+
                         ) : errorMessage ? (
-                            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-700">
                                 {errorMessage}
                             </div>
+
                         ) : (
-                            <CollectionProducts ProductsList={products} CollectionName={collectionName} />
+
+                            <CollectionProducts
+                                ProductsList={products}
+                                CollectionName={category?.name ?? ""}
+                            />
+
                         )}
+
                     </div>
+
                 </main>
+
             </div>
+
         </div>
+
     );
+
 }

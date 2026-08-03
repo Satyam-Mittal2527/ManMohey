@@ -1,110 +1,248 @@
-"use client"
+"use client";
 
 import { useState } from "react";
-interface Category {
+
+interface FilterOption {
+    id: number;
     name: string;
+    count: number;
 }
 
-interface CollectionCategoryProps {
-    CategoryList: Category[];
+interface FilterGroup {
+    name: string;
+    options: FilterOption[];
 }
-export default function MobileFilterDrawer({ 
-    CategoryList,
-}: CollectionCategoryProps) {
+
+interface Category {
+    id: number;
+    name: string;
+    slug: string;
+    count?: number;
+}
+
+interface MobileFilterDrawerProps {
+    childCategories: Category[];
+    filterGroups: FilterGroup[];
+}
+
+export default function MobileFilterDrawer({
+    childCategories,
+    filterGroups,
+}: MobileFilterDrawerProps) {
+
     const [openCategory, setOpenCategory] = useState(false);
     const [openPrice, setOpenPrice] = useState(false);
-    const [openBrand, setOpenBrand] = useState(false);
+    const [openFilters, setOpenFilters] = useState(false);
+
     return (
         <>
-            <div className="md:hidden absolute inset-x-0 bottom-0 h-16 bg-black fixed z-10 grid grid-cols-3 divide-x-1 divide-white-200">
-                <button aria-label="Open filters" onClick={() => setOpenCategory(true)} className="p-2 text-white w-full">
+
+            {/* Bottom Bar */}
+            <div className="fixed bottom-0 inset-x-0 z-40 grid grid-cols-3 bg-black text-white md:hidden">
+
+                <button
+                    onClick={() => setOpenCategory(true)}
+                    className="py-3"
+                >
                     <i className="bi bi-handbag"></i>
-                    <span> Category</span>
+                    <span className="ml-2">Category</span>
                 </button>
-                 <button aria-label="Open filters" onClick={() => setOpenPrice(true)} className="p-2 text-white w-full">
+
+                <button
+                    onClick={() => setOpenPrice(true)}
+                    className="py-3 border-x border-gray-700"
+                >
                     <i className="bi bi-cash-stack"></i>
-                   <span> Price</span>
+                    <span className="ml-2">Price</span>
                 </button>
-                 <button aria-label="Open filters" onClick={() => setOpenBrand(true)} className="p-2 text-white w-full">
-                    <i className="bi bi-bookmark-star"></i>
-                   <span> Brand</span>
+
+                <button
+                    onClick={() => setOpenFilters(true)}
+                    className="py-3"
+                >
+                    <i className="bi bi-funnel"></i>
+                    <span className="ml-2">Filters</span>
                 </button>
+
             </div>
 
+            {/* Category Drawer */}
+
             {openCategory && (
+
                 <div className="fixed inset-0 z-50 flex">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setOpenCategory(false)} />
-                    <aside className="relative w-full max-w-xs bg-white h-full p-4 overflow-auto">
-                        <button aria-label="Close filters" onClick={() => setOpenCategory(false)} className="mb-4 flex items-center gap-2">
-                            {/* back arrow */}
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            Back
+
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setOpenCategory(false)}
+                    />
+
+                    <aside className="relative h-full w-full max-w-xs overflow-y-auto bg-white p-5">
+
+                        <button
+                            onClick={() => setOpenCategory(false)}
+                            className="mb-5 flex items-center gap-2"
+                        >
+                            ← Back
                         </button>
 
-                        <div className="pb-5 mb-5 border-b">
-                            <h3 className="font-semibold mb-3">Category</h3>
-                            {CategoryList?.map((categoryItems, idx) => (
-                                <label key={idx} className="flex items-center justify-between gap-2 py-1">
-                                    <span className="flex items-center gap-2"><input type="checkbox" />{categoryItems.name}</span>
-                                    <span className="text-[11px]">12</span>
-                                </label>
-                            ))}
-                        </div>
-                        <a href="#" className="inline-block mt-2 text-sm font-medium">Apply filters</a>
+                        <h3 className="mb-4 text-lg font-semibold">
+                            Categories
+                        </h3>
+
+                        {childCategories.map((category) => (
+
+                            <label
+                                key={category.id}
+                                className="flex items-center justify-between py-2"
+                            >
+
+                                <span className="flex items-center gap-2">
+
+                                    <input type="checkbox" />
+
+                                    {category.name}
+
+                                </span>
+
+                                <span className="text-xs text-gray-500">
+
+                                    {category.count ?? 0}
+
+                                </span>
+
+                            </label>
+
+                        ))}
+
+                        <button className="mt-6 w-full rounded-md bg-black py-2 text-white">
+                            Apply
+                        </button>
+
                     </aside>
+
                 </div>
+
             )}
+
+            {/* Price Drawer */}
+
             {openPrice && (
-                <div className="fixed inset-0 z-50 flex">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setOpenPrice(false)} />
-                    <aside className="relative w-full max-w-xs bg-white h-full p-4 overflow-auto">
-                        <button aria-label="Close filters" onClick={() => setOpenPrice(false)} className="mb-4 flex items-center gap-2">
-                            {/* back arrow */}
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            Back
-                        </button>
-                          <div className="mb-5">
-                            <h3 className="font-semibold mb-3">Price range</h3>
-                            <div className="flex justify-between text-[11px] mb-2">
-                                <span>$120</span><span>$3,400</span></div>
-                            <div className="h-[4px] rounded-[999px] bg-[#E2E8F0] mb-2" aria-hidden="true"></div>
-                            <div className="flex justify-between text-[11px]">
-                                <span>$420</span><span>$2,380</span></div>
-                        </div>
-                       
-                        <a href="#" className="inline-block mt-2 text-sm font-medium">Apply filters</a>
-                    </aside>
-                </div>
-            )}
-            {openBrand && (
-                <div className="fixed inset-0 z-50 flex">
-                    <div className="absolute inset-0 bg-black/50" onClick={() => setOpenBrand(false)} />
-                    <aside className="relative w-full max-w-xs bg-white h-full p-4 overflow-auto">
-                        <button aria-label="Close filters" onClick={() => setOpenBrand(false)} className="mb-4 flex items-center gap-2">
-                            {/* back arrow */}
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                            Back
-                        </button>
-                         <div className="pb-5 mb-5 border-b">
-                            <h3 className="font-semibold mb-3">Brand</h3>
-                            <label className="flex items-center justify-between gap-2 py-1"><span className="flex items-center gap-2"><input type="checkbox"/> Brand Name</span> <span className="text-[11px]">84</span></label>
-                            <label className="flex items-center justify-between gap-2 py-1"><span className="flex items-center gap-2"><input type="checkbox" /> Brand Name</span> <span className="text-[11px]">72</span></label>
-                            <label className="flex items-center justify-between gap-2 py-1"><span className="flex items-center gap-2"><input type="checkbox" /> Brand Name</span> <span className="text-[11px]">36</span></label>
-                        </div>
-                       
-                        <a href="#" className="inline-block mt-2 text-sm font-medium">Apply filters</a>
-                    </aside>
-                </div>
-            )}
-            
 
-                        
+                <div className="fixed inset-0 z-50 flex">
+
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setOpenPrice(false)}
+                    />
+
+                    <aside className="relative h-full w-full max-w-xs overflow-y-auto bg-white p-5">
+
+                        <button
+                            onClick={() => setOpenPrice(false)}
+                            className="mb-5 flex items-center gap-2"
+                        >
+                            ← Back
+                        </button>
+
+                        <h3 className="mb-4 text-lg font-semibold">
+
+                            Price
+
+                        </h3>
+
+                        <div className="flex justify-between text-sm">
+
+                            <span>₹0</span>
+
+                            <span>₹10000</span>
+
+                        </div>
+
+                        <div className="my-4 h-1 rounded-full bg-slate-200"></div>
+
+                        <button className="mt-6 w-full rounded-md bg-black py-2 text-white">
+                            Apply
+                        </button>
+
+                    </aside>
+
+                </div>
+
+            )}
+
+            {/* Dynamic Filters */}
+
+            {openFilters && (
+
+                <div className="fixed inset-0 z-50 flex">
+
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setOpenFilters(false)}
+                    />
+
+                    <aside className="relative h-full w-full max-w-xs overflow-y-auto bg-white p-5">
+
+                        <button
+                            onClick={() => setOpenFilters(false)}
+                            className="mb-5 flex items-center gap-2"
+                        >
+                            ← Back
+                        </button>
+
+                        {filterGroups.map((group) => (
+
+                            <div
+                                key={group.name}
+                                className="mb-6 border-b pb-4"
+                            >
+
+                                <h3 className="mb-3 font-semibold">
+
+                                    {group.name}
+
+                                </h3>
+
+                                {group.options.map((option) => (
+
+                                    <label
+                                        key={option.id}
+                                        className="flex items-center justify-between py-2"
+                                    >
+
+                                        <span className="flex items-center gap-2">
+
+                                            <input type="checkbox" />
+
+                                            {option.name}
+
+                                        </span>
+
+                                        <span className="text-xs text-gray-500">
+
+                                            {option.count}
+
+                                        </span>
+
+                                    </label>
+
+                                ))}
+
+                            </div>
+
+                        ))}
+
+                        <button className="w-full rounded-md bg-black py-2 text-white">
+                            Apply Filters
+                        </button>
+
+                    </aside>
+
+                </div>
+
+            )}
+
         </>
-    )
+    );
 }
