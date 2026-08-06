@@ -5,9 +5,9 @@ export default function Footer(){
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Shop</h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="/newArrivals" className="hover:text-slate-900">New arrivals</a></li>
-                <li><a href="/bestSellers" className="hover:text-slate-900">Best sellers</a></li>
-                <li><a href="/sale" className="hover:text-slate-900">Sale items</a></li>
+                <li><a href="/shop/new-arrivals" className="hover:text-slate-900">New arrivals</a></li>
+                <li><a href="/shop/best-sellers" className="hover:text-slate-900">Best sellers</a></li>
+                <li><a href="/shop/trending" className="hover:text-slate-900">Trending</a></li>
                 <li><a href="/collections" className="hover:text-slate-900">All collections</a></li>
                 <li><a href="/collections" className="hover:text-slate-900">By category</a></li>
               </ul>

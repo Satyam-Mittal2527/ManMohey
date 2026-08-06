@@ -1,54 +1,53 @@
-import Hero from "./_components/Hero"
-import Home_section2 from "./_components/Home_section2"
-import Home_section3 from "./_components/Home_section3"
-import Home_section4 from "./_components/Home_section4"
-import Home_section5 from "./_components/Home_section5"
-import Home_usercontact from "./_components/Home_usercontact"
-import DealsBar from "./_components/DealsBar"
-import Link from "next/link"
+import Hero from "./_components/Hero";
+import HomeCollectionSection from "./_components/HomeCollectionSection";
+import Home_section4 from "./_components/Home_section4";
+import Home_usercontact from "./_components/Home_usercontact";
+import DealsBar from "./_components/DealsBar";
+import Link from "next/link";
+import Home_section5 from "./_components/Home_section5";
 const categories = [
-  {
-    name: "Sarees",
-    href: "/collections/sarees",
-    image: "/saree_icon.png",
-    description: "Timeless elegance in every drape",
-  },
-  {
-    name: "Kurtis",
-    href: "/collections/kurtis",
-    image: "/kurti_icon.png",
-    description: "Comfort meets style",
-  },
-  {
-    name: "Lehengas",
-    href: "/collections/lehengas",
-    image: "/lehenga_icon.png",
-    description: "Celebrate in grace and beauty",
-  },
-  {
-    name: "Unstitch",
-    href: "/collections/unstich",
-    image: "/saree_icon.png",
-    description: "Perfect everyday elegance",
-  },
-  {
-    name: "Bridal",
-    href: "/collections/bridal",
-    image: "/bridal_icon.png",
-    description: "Modern meets traditional",
-  },
-  {
-    name: "Beauty",
-    href: "/collections/beauty",
-    image: "/beauty_icon.png",
-    description: "Modern meets traditional",
-  },
-  {
-    name: "Lingerie",
-    href: "/collections/lingerie",
-    image: "/lingerie_icon.png",
-    description: "Modern meets traditional",
-  },
+    {
+        name: "Sarees",
+        href: "/collections/sarees",
+        image: "/saree_icon.png",
+        description: "Timeless elegance in every drape",
+    },
+    {
+        name: "Kurtis",
+        href: "/collections/kurtis",
+        image: "/kurti_icon.png",
+        description: "Comfort meets style",
+    },
+    {
+        name: "Lehengas",
+        href: "/collections/lehengas",
+        image: "/lehenga_icon.png",
+        description: "Celebrate in grace and beauty",
+    },
+    {
+        name: "Unstitch",
+        href: "/collections/unstich",
+        image: "/saree_icon.png",
+        description: "Perfect everyday elegance",
+    },
+    {
+        name: "Bridal",
+        href: "/collections/bridal",
+        image: "/bridal_icon.png",
+        description: "Modern meets traditional",
+    },
+    {
+        name: "Beauty",
+        href: "/collections/beauty",
+        image: "/beauty_icon.png",
+        description: "Modern meets traditional",
+    },
+    {
+        name: "Lingerie",
+        href: "/collections/lingerie",
+        image: "/lingerie_icon.png",
+        description: "Modern meets traditional",
+    },
 ];
 export default function Home() {
     return (
@@ -79,7 +78,11 @@ export default function Home() {
             </nav>
             <Hero />
             <DealsBar />
-            <Home_section2 />
+
+            <HomeCollectionSection
+                title="New Arrivals"
+                collectionSlug="new-arrivals"
+            />
 
             <section className="bg-slate-50 py-14">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -97,9 +100,17 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-            <Home_section3 />
+            <HomeCollectionSection
+                title="Trending"
+                collectionSlug="trending"
+            />
+
             <Home_section4 />
-            <Home_section5 />
+
+            <HomeCollectionSection
+                title="Best Sellers"
+                collectionSlug="best-sellers"
+            />
             <section className="bg-white py-20">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="mb-12">

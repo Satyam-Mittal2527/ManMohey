@@ -74,7 +74,6 @@ export default function cart() {
     const loadCart = async () => {
         try {
             setLoading(true);
-
             const data = await getCart();
             console.log("Cart data:", data);
             setCartItems(
