@@ -9,6 +9,7 @@ interface FilterOption {
 }
 
 interface FilterGroup {
+    key: string;
     name: string;
     options: FilterOption[];
 }

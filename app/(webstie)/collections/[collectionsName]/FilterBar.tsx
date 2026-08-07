@@ -5,10 +5,10 @@ interface FilterOption {
 }
 
 interface FilterGroup {
+    key: string;
     name: string;
     options: FilterOption[];
 }
-
 
 interface Category {
     id: number;
@@ -66,26 +66,20 @@ export default function Filter_bar({
 
             {/* Dynamic Filters */}
             {filterGroups.map((group) => (
-                <div
-                    key={group.name}
-                    className="pb-5 mb-5 border-b"
-                >
-                    <h3 className="font-semibold mb-3">
-                        {group.name}
-                    </h3>
+                <div key={group.key} className="mb-6">
+                    <h3 className="font-semibold mb-2">{group.name}</h3>
 
                     {group.options.map((option) => (
                         <label
                             key={option.id}
-                            className="flex items-center justify-between py-1"
+                            className="flex items-center gap-2 py-1"
                         >
-                            <span className="flex items-center gap-2">
-                                <input type="checkbox" />
-                                {option.name}
-                            </span>
+                            <input type="checkbox" />
 
-                            <span className="text-xs text-gray-500">
-                                {option.count}
+                            <span>{option.name}</span>
+
+                            <span className="text-gray-500 text-sm">
+                                ({option.count})
                             </span>
                         </label>
                     ))}

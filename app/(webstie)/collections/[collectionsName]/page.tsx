@@ -45,6 +45,7 @@ interface FilterOption {
 }
 
 interface FilterGroup {
+    key: string;
     name: string;
     options: FilterOption[];
 }
@@ -88,6 +89,7 @@ export default function Collection() {
                 setCategory(data.category);
                 setChildCategories(data.childCategories);
                 setProducts(data.products);
+                setFilterGroups(data.filterGroups ?? []);
 
                 if (data.filterGroups) {
                     setFilterGroups(data.filterGroups);

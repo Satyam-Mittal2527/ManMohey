@@ -20,6 +20,7 @@ interface FilterOption {
 }
 
 interface FilterGroup {
+    key: string;
     name: string;
     options: FilterOption[];
 }
@@ -59,7 +60,7 @@ export default function Collection() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [filterGroups] = useState<FilterGroup[]>([]);
+    const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
     const collectionName = category?.name ?? "";
 
     
@@ -76,6 +77,7 @@ export default function Collection() {
                 setProducts(data.products);
                 setCategory(data.category);
                 setChildCategories(data.childCategories);
+                setFilterGroups(data.filters)
             }
             catch (err) {
                 console.log(err);
