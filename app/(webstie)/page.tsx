@@ -3,6 +3,7 @@ import HomeCollectionSection from "./_components/HomeCollectionSection";
 import Home_section4 from "./_components/Home_section4";
 import Home_usercontact from "./_components/Home_usercontact";
 import DealsBar from "./_components/DealsBar";
+import Testimonials from "./_components/Brands";
 import Link from "next/link";
 import Home_section5 from "./_components/Home_section5";
 const categories = [
@@ -83,8 +84,8 @@ export default function Home() {
                 title="New Arrivals"
                 collectionSlug="new-arrivals"
             />
-
-            <section className="bg-slate-50 py-14">
+            <Testimonials/>
+            {/* <section className="bg-slate-50 py-14">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Trusted by women across India and beyond</p>
@@ -99,7 +100,7 @@ export default function Home() {
                         <div className="rounded-full bg-slate-200 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.24em] text-slate-700">Brand name</div>
                     </div>
                 </div>
-            </section>
+            </section> */}
             <HomeCollectionSection
                 title="Trending"
                 collectionSlug="trending"
