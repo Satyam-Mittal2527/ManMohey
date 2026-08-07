@@ -5,15 +5,19 @@ import { useState } from "react";
 interface FilterOption {
     id: number;
     name: string;
+    slug: string;
     count: number;
+    hex_code?: string;
+    value?: number;
 }
 
 interface FilterGroup {
-    key: string;
-    name: string;
+    displayName: string;
+    type: "checkbox" | "color" | "range";
     options: FilterOption[];
+    min?: number;
+    max?: number;
 }
-
 interface Category {
     id: number;
     name: string;
@@ -23,7 +27,7 @@ interface Category {
 
 interface MobileFilterDrawerProps {
     childCategories: Category[];
-    filterGroups: FilterGroup[];
+    filterGroups?: Record<string, FilterGroup>;
 }
 
 export default function MobileFilterDrawer({
@@ -192,47 +196,52 @@ export default function MobileFilterDrawer({
                             ← Back
                         </button>
 
-                        {filterGroups.map((group) => (
+                        {Object.entries(filterGroups ?? {}).map(([key, group]) => {
+                            if (group.type !== "range" && group.options.length === 0) return null;
 
-                            <div
-                                key={group.name}
-                                className="mb-6 border-b pb-4"
-                            >
+                            return (
+                                <div key={key} className="mb-6">
+                                    <h3 className="text-sm font-medium mb-3">
+                                        {group.displayName}
+                                    </h3>
 
-                                <h3 className="mb-3 font-semibold">
+                                    {group.type === "range" ? (
+                                        <>
+                                            <div className="flex justify-between text-xs mb-2">
+                                                <span>₹{group.min}</span>
+                                                <span>₹{group.max}</span>
+                                            </div>
 
-                                    {group.name}
+                                            <div className="h-1 rounded-full bg-slate-200"></div>
+                                        </>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {group.options.map((option) => (
+                                                <label
+                                                    key={option.id}
+                                                    className="flex items-center gap-2 py-1"
+                                                >
+                                                    <input type="checkbox" />
 
-                                </h3>
+                                                    {group.type === "color" && option.hex_code && (
+                                                        <span
+                                                            className="w-4 h-4 rounded-full border border-gray-300"
+                                                            style={{ backgroundColor: option.hex_code }}
+                                                        />
+                                                    )}
 
-                                {group.options.map((option) => (
+                                                    <span>{option.name}</span>
 
-                                    <label
-                                        key={option.id}
-                                        className="flex items-center justify-between py-2"
-                                    >
-
-                                        <span className="flex items-center gap-2">
-
-                                            <input type="checkbox" />
-
-                                            {option.name}
-
-                                        </span>
-
-                                        <span className="text-xs text-gray-500">
-
-                                            {option.count}
-
-                                        </span>
-
-                                    </label>
-
-                                ))}
-
-                            </div>
-
-                        ))}
+                                                    <span className="text-gray-500 text-sm">
+                                                        ({option.count})
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
 
                         <button className="w-full rounded-md bg-black py-2 text-white">
                             Apply Filters

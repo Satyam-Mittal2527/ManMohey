@@ -16,13 +16,18 @@ interface ProductImage {
 interface FilterOption {
     id: number;
     name: string;
+    slug: string;
     count: number;
+    hex_code?: string;
+    value?: number;
 }
 
 interface FilterGroup {
-    key: string;
-    name: string;
+    displayName: string;
+    type: "checkbox" | "color" | "range";
     options: FilterOption[];
+    min?: number;
+    max?: number;
 }
 
 interface Category {
@@ -60,7 +65,7 @@ export default function Collection() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
+    const [filterGroups, setFilterGroups] = useState<Record<string, FilterGroup>>({});
     const collectionName = category?.name ?? "";
 
     

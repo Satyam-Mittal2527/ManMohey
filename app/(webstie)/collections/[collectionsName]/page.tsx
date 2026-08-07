@@ -41,20 +41,25 @@ interface Product {
 interface FilterOption {
     id: number;
     name: string;
+    slug: string;
     count: number;
+    hex_code?: string;
+    value?: number;
 }
 
 interface FilterGroup {
-    key: string;
-    name: string;
+    displayName: string;
+    type: "checkbox" | "color" | "range";
     options: FilterOption[];
+    min?: number;
+    max?: number;
 }
 
 interface CollectionResponse {
     category: Category;
     childCategories: Category[];
-    filterGroups?: FilterGroup[];
     products: Product[];
+    filterGroups?: Record<string, FilterGroup>;
 }
 
 export default function Collection() {
@@ -65,8 +70,7 @@ export default function Collection() {
     const [category, setCategory] = useState<Category | null>(null);
     const [childCategories, setChildCategories] = useState<Category[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
-    const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
-
+    const [filterGroups, setFilterGroups] = useState<Record<string, FilterGroup>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -85,11 +89,10 @@ export default function Collection() {
 
                 // If your backend wraps the response inside "products"
                 const data: CollectionResponse = response.products;
-
+                console.log(data.filterGroups)
                 setCategory(data.category);
                 setChildCategories(data.childCategories);
                 setProducts(data.products);
-                setFilterGroups(data.filterGroups ?? []);
 
                 if (data.filterGroups) {
                     setFilterGroups(data.filterGroups);
