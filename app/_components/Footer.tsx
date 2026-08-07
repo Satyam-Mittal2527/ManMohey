@@ -19,8 +19,8 @@ export default function Footer(){
                 <li><a href="/collections/sarees" className="hover:text-slate-900">Sarees</a></li>
                 <li><a href="/collections/kurtis" className="hover:text-slate-900">Kurtis</a></li>
                 <li><a href="/collections/lehengas" className="hover:text-slate-900">Lehengas</a></li>
-                <li><a href="/collections/salwar-suits" className="hover:text-slate-900">Salwar suits</a></li>
-                <li><a href="/collections/western-wear" className="hover:text-slate-900">Western wear</a></li>
+                <li><a href="/collections/party-wear" className="hover:text-slate-900">Party Wear</a></li>
+                <li><a href="/collections/winter-collection" className="hover:text-slate-900">Western wear</a></li>
               </ul>
             </div>
 
@@ -28,7 +28,7 @@ export default function Footer(){
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Support</h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
                 <li><a href="/contact" className="hover:text-slate-900">Contact us</a></li>
-                <li><a href="/faqs" className="hover:text-slate-900">FAQs</a></li>
+                <li><a href="/faq" className="hover:text-slate-900">FAQs</a></li>
                 <li><a href="/returns" className="hover:text-slate-900">Returns</a></li>
                 <li><a href="/shipping" className="hover:text-slate-900">Shipping info</a></li>
                 <li><a href="/size-guide" className="hover:text-slate-900">Size guide</a></li>
@@ -40,22 +40,22 @@ export default function Footer(){
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">Legal</h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="/privacy" className="hover:text-slate-900">Privacy policy</a></li>
-                <li><a href="/terms" className="hover:text-slate-900">Terms of service</a></li>
+                <li><a href="/privacy_policy" className="hover:text-slate-900">Privacy policy</a></li>
+                <li><a href="/terms-of-service" className="hover:text-slate-900">Terms of service</a></li>
                 <li><a href="/cookies" className="hover:text-slate-900">Cookie policy</a></li>
                 <li><a href="/accessibility" className="hover:text-slate-900">Accessibility</a></li>
-                <li><a href="/account" className="hover:text-slate-900">Account</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Account</a></li>
               </ul>
             </div>
 
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">My account</h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="/order-history" className="hover:text-slate-900">Order history</a></li>
-                <li><a href="/saved-items" className="hover:text-slate-900">Saved items</a></li>
-                <li><a href="/wishlist" className="hover:text-slate-900">Wishlist</a></li>
-                <li><a href="/sign-out" className="hover:text-slate-900">Sign out</a></li>
-                <li><a href="/login" className="hover:text-slate-900">Log in</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Order history</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Saved items</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Wishlist</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Sign out</a></li>
+                <li><a href="/profile" className="hover:text-slate-900">Log in</a></li>
               </ul>
             </div>
           </div>
