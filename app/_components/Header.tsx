@@ -308,15 +308,19 @@ export default function Header() {
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="mx-auto flex w-full items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-1 text-slate-900 flex-col">
+        <div className="mx-auto flex w-full items-center gap-3 px-4 py-3 sm:px-6 lg:px-6 xl:px-8">
+          <div className="flex shrink-0 items-center">
             <a href="/">
-              <img src="/Logo.png" alt="ManMohey logo" className="h-12 w-auto" />
+              <img
+                src="/Logo.png"
+                alt="ManMohey logo"
+                className="h-12 w-auto"
+              />
             </a>
           </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-700">
-            <div className="flex flex-row gap-8 justify-center-safe">
+          <nav className="hidden md:flex flex-1 min-w-0 items-center text-sm font-medium text-slate-700">
+            <div className="flex w-full items-center justify-center gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
               {categories.map((category) => (
                 <div key={category.name} className="relative group">
                   <Link
@@ -324,7 +328,7 @@ export default function Header() {
                     className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
                   >
                     {category.image && (
-                      <div className="w-16 h-16 flex items-center justify-center">
+                      <div className="flex h-14 w-14 items-center justify-center xl:h-16 xl:w-16">
                         <img
                           src={category.image}
                           alt={category.name}
@@ -332,7 +336,7 @@ export default function Header() {
                         />
                       </div>
                     )}
-                    <span className="text-lg font-medium text-slate-700 hover:text-slate-900">
+                    <span className="whitespace-nowrap text-base font-medium text-slate-700 hover:text-slate-900 xl:text-lg">
                       {category.name}
                     </span>
                   </Link>
@@ -400,7 +404,7 @@ z-50
             </div>
 
           </nav>
-          <div className="hidden md:flex items-center bg-white rounded-full border border-gray-300 px-4 py-2 md:w-[400px]">
+          <div className="hidden md:flex shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 py-2 w-[260px] lg:w-[300px] xl:w-[350px] 2xl:w-[400px]">
             <Search className="md:h-5 md:w-5 text-gray-500" />
             <input
               type="text"
@@ -410,11 +414,14 @@ z-50
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-4 text-sm text-slate-700">
+          <div className="flex shrink-0 items-center gap-2 lg:gap-3 text-sm text-slate-700">
             <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 p-2 w-10">
               <Search className="h-5 w-5 text-gray-500" />
             </div>
-            <a href="/cart" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900">
+            <a
+              href="/cart"
+              className="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900"
+            >
               <span className="inline-flex h-5 w-5 items-center justify-center text-slate-500"><i className="bi bi-cart"></i></span>
               <span className="hidden md:flex">Cart</span>
             </a>
