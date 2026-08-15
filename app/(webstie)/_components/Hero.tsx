@@ -6,9 +6,9 @@ import { useEffect, useState, useRef } from "react";
 export default function Hero() {
     const [heroImageList, setheroImageList] = useState<string[]>([]);
     const [ImageLink, setImageLink] = useState<string[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);    
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
-    const [loadError, setLoadError] = useState<string | null>(null);    
+    const [loadError, setLoadError] = useState<string | null>(null);
     const trackRef = useRef<HTMLDivElement | null>(null);
     const autoRef = useRef<number | null>(null);
     const [isPaused, setIsPaused] = useState(false);
@@ -81,71 +81,55 @@ export default function Hero() {
     return (
         <>
             <div
-                className="slider-container relative w-full overflow-hidden bg-cover text-white min-h-[680px]"
+                className="slider-container relative w-full overflow-hidden bg-cover text-white"
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
             >
                 {isLoading ? (
-                    <div className="flex h-[680px] w-full items-center justify-center bg-slate-200 text-slate-700">
+                    <div className="flex aspect-[16/7] w-full items-center justify-center bg-slate-200 text-slate-700">
                         <div className="flex flex-col items-center gap-3">
                             <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />
                             <p className="text-sm font-medium">Loading banner...</p>
                         </div>
                     </div>
                 ) : loadError ? (
-                    <div className="flex h-[680px] w-full items-center justify-center bg-slate-200 text-slate-700">
+                    <div className="flex aspect-[16/7] w-full items-center justify-center bg-slate-200 text-slate-700">
                         <p className="text-sm font-medium">{loadError}</p>
                     </div>
                 ) : (
                     <>
                         <div ref={trackRef} className="slider-track flex w-full">
-                            {heroImageList.length > 0 ? heroImageList.map((img, i) => (
-                                <a
-                                    href={ImageLink[i] ?? '#'}
-                                    key={i}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="min-w-full block"
-                                >
-                                    <div
-                                        className="slide w-full bg-center bg-cover min-h-[680px]"
-                                        style={{ backgroundImage: `url(${img})` }}
-                                    />
-                                </a>
-                            )) : (
-                                <div className="slide min-w-full bg-gray-200 min-h-[680px]" />
+                            {heroImageList.length > 0 ? (
+                                heroImageList.map((img, i) => (
+                                    <a
+                                        href={ImageLink[i] ?? '#'}
+                                        key={i}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block min-w-full"
+                                    >
+                                        <div
+                                            className="
+                                    slide
+                                    aspect-[16/7]
+                                    w-full
+                                    bg-center
+                                    bg-cover
+                                    bg-no-repeat
+                                "
+                                            style={{
+                                                backgroundImage: `url(${img})`,
+                                            }}
+                                        />
+                                    </a>
+                                ))
+                            ) : (
+                                <div className="slide aspect-[16/7] min-w-full bg-gray-200" />
                             )}
                         </div>
 
-                        <button
-                            className="prev absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 z-20"
-                            onClick={() => {
-                                setCurrentIndex((i) => (heroImageList.length ? (i - 1 + heroImageList.length) % heroImageList.length : 0));
-                            }}
-                            aria-label="Previous"
-                        >
-                            ‹
-                        </button>
-                        <button
-                            className="next absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white rounded-full p-2 z-20"
-                            onClick={() => {
-                                setCurrentIndex((i) => (heroImageList.length ? (i + 1) % heroImageList.length : 0));
-                            }}
-                            aria-label="Next"
-                        >
-                            ›
-                        </button>
-
-                        <div className="indicators absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                            {heroImageList.map((_, i) => (
-                                <button
-                                    key={i}
-                                    className={`w-3 h-3 rounded-full ${i === currentIndex ? 'bg-white' : 'bg-white/40'}`}
-                                    onClick={() => setCurrentIndex(i)}
-                                    aria-label={`Go to slide ${i + 1}`}
-                                />
-                            ))}
-                        </div>
+                        {/* arrows */}
+                        ...
                     </>
                 )}
             </div>

@@ -308,19 +308,26 @@ export default function Header() {
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="mx-auto flex w-full items-center gap-3 px-4 py-3 sm:px-6 lg:px-6 xl:px-8">
+        <div className="
+  mx-auto flex w-full items-center
+  gap-2
+  px-3 py-3
+  sm:px-4
+  lg:px-5
+  xl:px-6
+">
           <div className="flex shrink-0 items-center">
             <a href="/">
               <img
                 src="/Logo.png"
                 alt="ManMohey logo"
-                className="h-12 w-auto"
+                className="h-9 w-auto lg:h-10 xl:h-12"
               />
             </a>
           </div>
 
           <nav className="hidden md:flex flex-1 min-w-0 items-center text-sm font-medium text-slate-700">
-            <div className="flex w-full items-center justify-center gap-3 lg:gap-4 xl:gap-6 2xl:gap-8">
+           <div className="flex w-full items-center justify-center gap-1 lg:gap-2 xl:gap-4 2xl:gap-8">
               {categories.map((category) => (
                 <div key={category.name} className="relative group">
                   <Link
@@ -328,7 +335,13 @@ export default function Header() {
                     className="flex flex-col items-center transition delay-100 duration-200 ease-in-out hover:-translate-y-1 hover:bg-slate-200"
                   >
                     {category.image && (
-                      <div className="flex h-14 w-14 items-center justify-center xl:h-16 xl:w-16">
+                      <div className="
+  flex items-center justify-center
+  h-10 w-10
+  lg:h-12 lg:w-12
+  xl:h-14 xl:w-14
+  2xl:h-16 2xl:w-16
+">
                         <img
                           src={category.image}
                           alt={category.name}
@@ -336,7 +349,16 @@ export default function Header() {
                         />
                       </div>
                     )}
-                    <span className="whitespace-nowrap text-base font-medium text-slate-700 hover:text-slate-900 xl:text-lg">
+                   <span className="
+  whitespace-nowrap
+  text-xs
+  lg:text-sm
+  xl:text-base
+  2xl:text-lg
+  font-medium
+  text-slate-700
+  hover:text-slate-900
+">
                       {category.name}
                     </span>
                   </Link>
@@ -404,12 +426,25 @@ z-50
             </div>
 
           </nav>
-          <div className="hidden md:flex shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 py-2 w-[260px] lg:w-[300px] xl:w-[350px] 2xl:w-[400px]">
-            <Search className="md:h-5 md:w-5 text-gray-500" />
+          <div className="
+  hidden md:flex
+  items-center
+  bg-white
+  rounded-full
+  border border-gray-300
+  px-3
+  py-2
+  w-[180px]
+  lg:w-[240px]
+  xl:w-[320px]
+  2xl:w-[400px]
+">
+            <Search className="h-5 w-5 shrink-0 text-gray-500" />
+
             <input
               type="text"
               placeholder="Search for Sarees, Kurtis, Lehengas..."
-              className="ml-2 flex-1 outline-none bg-transparent"
+              className="ml-2 min-w-0 flex-1 outline-none bg-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
