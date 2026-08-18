@@ -327,7 +327,7 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex flex-1 min-w-0 items-center text-sm font-medium text-slate-700">
-           <div className="flex w-full items-center justify-center gap-1 lg:gap-2 xl:gap-4 2xl:gap-8">
+            <div className="flex w-full items-center justify-center gap-1 lg:gap-2 xl:gap-4 2xl:gap-8">
               {categories.map((category) => (
                 <div key={category.name} className="relative group">
                   <Link
@@ -349,7 +349,7 @@ export default function Header() {
                         />
                       </div>
                     )}
-                   <span className="
+                    <span className="
   whitespace-nowrap
   text-xs
   lg:text-sm
@@ -548,21 +548,44 @@ z-50
         </div>
       )}
       {showRegisterPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="relative z-10 w-full max-w-md rounded bg-white shadow-lg">
-            <div className="p-6">
-              <AuthForm
-                fields={registerFormItems}
-                handleSubmit={handleRegisterSubmit}
-                formData={registerData}
-                handleChange={handleRegisterChange}
-                SubmitButtonText="Register"
-              />
-              <div className="text-center mt-3">
-                <span className="text-body-3">
-                  Have Account? Sign in here&nbsp;
-                  <span className="text-blue-600 font-sm" onClick={() => { setShowLoginPopup(true); setShowRegisterPopup(false); }}>Login</span>
-                </span>
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          onClick={() => setShowRegisterPopup(false)}
+        >
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/40" />
+
+          {/* Modal positioning */}
+          <div className="relative flex min-h-full items-center justify-center p-4 sm:p-6">
+            <div
+              className="relative w-full max-w-md rounded-xl bg-white shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="max-h-[calc(100vh-2rem)] overflow-y-auto p-6 sm:p-8">
+                <AuthForm
+                  fields={registerFormItems}
+                  handleSubmit={handleRegisterSubmit}
+                  formData={registerData}
+                  handleChange={handleRegisterChange}
+                  SubmitButtonText="Register"
+                />
+
+                <div className="mt-3 text-center">
+                  <span className="text-body-3">
+                    Have Account? Sign in here&nbsp;
+
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-700 hover:underline"
+                      onClick={() => {
+                        setShowLoginPopup(true);
+                        setShowRegisterPopup(false);
+                      }}
+                    >
+                      Login
+                    </button>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
