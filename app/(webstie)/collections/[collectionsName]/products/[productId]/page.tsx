@@ -83,10 +83,10 @@ export default function Product() {
 
   console.log(productId);
   const handleAddToCart = async () => {
-    console.log(productId, quantity);
+    console.log("Product ID:"+ product?.id, quantity);
     try {
       setIsAdding(true);
-      const response = await addToCart(productId, quantity, selectedSize)
+      const response = await addToCart(product?.id, quantity, selectedSize)
       console.log("Cart Updated:", response);
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 2000);

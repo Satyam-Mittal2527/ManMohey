@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ChangePassword } from "@/lib/api";
+import Link from "next/link";
 
 export default function Profile() {
     const [tab, setTab] = useState<"personal" | "password">("personal")
@@ -19,16 +20,16 @@ export default function Profile() {
     useEffect(() => {
         async function loadProfile() {
             try {
-                    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL as string) || "http://localhost:8000"
-                    const res = await fetch(`${baseUrl}/api/User/me`, { credentials: "include" })
-                    console.log("/api/User/me status:", res.status)
-                    if (!res.ok) {
-                        const text = await res.text()
-                        console.error("/api/User/me returned non-OK:", res.status, text)
-                        setError("Failed to load profile")
-                        return
-                    }
-                    const json = await res.json()
+                const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL as string) || "http://localhost:8000"
+                const res = await fetch(`${baseUrl}/api/User/me`, { credentials: "include" })
+                console.log("/api/User/me status:", res.status)
+                if (!res.ok) {
+                    const text = await res.text()
+                    console.error("/api/User/me returned non-OK:", res.status, text)
+                    setError("Failed to load profile")
+                    return
+                }
+                const json = await res.json()
                 console.log("/api/User/me response:", json)
                 const profile = json?.profile
                 if (profile) {
@@ -56,8 +57,8 @@ export default function Profile() {
     }, [])
 
     function handlePersonalSubmit(e: React.FormEvent) {
-            e.preventDefault()
-            ;(async () => {
+        e.preventDefault()
+            ; (async () => {
                 try {
                     const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL as string) || "http://localhost:8000"
                     // split fullName into first and last
@@ -173,12 +174,18 @@ export default function Profile() {
                         >
                             Change Password
                         </button>
-                        <a
+                        <Link
                             href="/forget-password"
                             className="w-full block text-left px-4 py-3 rounded border border-dashed border-gray-300 text-gray-700 hover:bg-gray-50"
                         >
                             Forgot Password
-                        </a>
+                        </Link>
+                        <Link
+                            href="/addresses"
+                            className="w-full block text-left px-4 py-3 rounded border border-dashed border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                            Saved Addresses
+                        </Link>
                     </nav>
                 </aside>
 

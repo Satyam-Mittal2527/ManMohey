@@ -6,8 +6,8 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../(webstie)/_components/ui/button";
 import AuthForm from "../(auth)/AuthPage";
-import Profile from "../(webstie)/profile/page";
-import Orders from "../(webstie)/orders/page";
+import Profile from "../(account)/profile/page";
+import Orders from "../(account)/orders/page";
 import { SendOtp, VerifyOtp, Register_User, GetCurrentUser, Logout } from "@/lib/api";
 const categories = [
   {
