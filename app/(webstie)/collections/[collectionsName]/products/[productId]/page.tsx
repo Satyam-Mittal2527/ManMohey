@@ -42,7 +42,19 @@ interface Product {
 
   product_images: ProductImage[];
 
+  variants: ProductVariant[];
+
   RelatedProducts: Product[];
+}
+
+interface ProductVariant {
+  id: number;
+  product_id: number;
+  sku: string | null;
+  size: string | null;
+  color: string | null;
+  stock: number | null;
+  price: number | null;
 }
 
 export default function Product() {
@@ -50,7 +62,7 @@ export default function Product() {
   const [isAdding, setIsAdding] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [selectedSize, setSelectedSize] = useState("M");
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -81,12 +93,42 @@ export default function Product() {
     fetchProduct();
   }, [productId]);
 
+
+  useEffect(() => {
+    if (!product) return;
+
+    if (product.variants?.length > 0) {
+      const firstAvailableVariant = product.variants.find(
+        (variant) => (variant.stock ?? 0) > 0
+      );
+
+      if (firstAvailableVariant) {
+        setSelectedSize(firstAvailableVariant.size);
+      } else {
+        setSelectedSize(product.variants[0]?.size ?? null);
+      }
+    } else {
+      setSelectedSize(null);
+    }
+
+    setQuantity(1);
+  }, [product]);
+
+
   console.log(productId);
   const handleAddToCart = async () => {
-    console.log("Product ID:"+ product?.id, quantity);
+    console.log("Product ID:" + product?.id, quantity);
+    if (!product) {
+      return;
+    }
     try {
       setIsAdding(true);
-      const response = await addToCart(product?.id, quantity, selectedSize)
+      const response = await addToCart(
+        product.id,
+        quantity,
+        selectedSize,
+        selectedVariant?.id ?? null
+      );
       console.log("Cart Updated:", response);
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 2000);
@@ -104,11 +146,32 @@ export default function Product() {
     // setTimeout(() => router.push("/cart"), 500);
   };
 
-  const handleQuantityChange = (type: "increment" | "decrement") => {
+  const handleQuantityChange = (
+    type: "increment" | "decrement"
+  ) => {
+
     if (type === "increment") {
-      setQuantity((prev) => prev + 1);
-    } else if (type === "decrement" && quantity > 1) {
+
+      setQuantity((prev) => {
+
+        if (displayedStock <= 0) {
+          return prev;
+        }
+
+        if (prev >= displayedStock) {
+          return prev;
+        }
+
+        return prev + 1;
+      });
+
+    } else if (
+      type === "decrement" &&
+      quantity > 1
+    ) {
+
       setQuantity((prev) => prev - 1);
+
     }
   };
   const selectedProduct = product;
@@ -124,6 +187,24 @@ export default function Product() {
     );
 
   }
+  const variants = selectedProduct.variants || [];
+
+  const hasVariants = variants.length > 0;
+
+  const selectedVariant = hasVariants
+    ? variants.find(
+      (variant) => variant.size === selectedSize
+    ) || null
+    : null;
+
+  const displayedPrice = selectedVariant
+    ? selectedVariant.price ?? selectedProduct.price
+    : selectedProduct.sale_price ?? selectedProduct.price;
+
+  const displayedStock = selectedVariant
+    ? selectedVariant.stock ?? 0
+    : selectedProduct.stock;
+
   const images =
     selectedProduct.product_images
       ?.sort((a, b) => a.display_order - b.display_order)
@@ -207,7 +288,7 @@ export default function Product() {
 
           <div className="flex items-center gap-3">
             <span className="text-3xl font-bold text-foreground">
-              {selectedProduct.sale_price ?? selectedProduct.price}
+              ₹{Number(displayedPrice).toFixed(0)}
             </span>
           </div>
 
@@ -249,28 +330,100 @@ export default function Product() {
               </div>
             </div>
             <div>
-              <span className="block mb-2 font-medium">Size</span>
-              <div className="flex flex-wrap items-center gap-2">
-                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-3 py-1 border rounded-md text-sm font-medium ${selectedSize === size
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                      }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+
+                {displayedStock > 0 ? (
+                  <>
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700">
+                      <span className="h-2 w-2 rounded-full bg-green-600" />
+                      In Stock
+                    </span>
+
+                    {displayedStock <= 5 && (
+                      <span className="text-sm text-orange-600">
+                        Only {displayedStock} left
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600">
+                    <span className="h-2 w-2 rounded-full bg-red-600" />
+                    Out of Stock
+                  </span>
+
+                )}
+                {selectedVariant?.sku && (
+                  <p className="text-xs text-muted-foreground">
+                    SKU: {selectedVariant.sku}
+                  </p>
+                )}
+              </div>
+              <div>
+                <span className="block mb-2 font-medium">
+                  Size
+                </span>
+
+                {hasVariants ? (
+                  <div className="flex flex-wrap items-center gap-2">
+
+                    {variants.map((variant) => {
+
+                      const isSelected =
+                        selectedSize === variant.size;
+
+                      const isOutOfStock =
+                        (variant.stock ?? 0) <= 0;
+
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          disabled={isOutOfStock}
+                          onClick={() => {
+                            setSelectedSize(variant.size);
+                            setQuantity(1);
+                          }}
+                          className={`
+              relative px-4 py-2
+              border rounded-md
+              text-sm font-medium
+              transition
+              ${isSelected
+                              ? "bg-black text-white border-black"
+                              : isOutOfStock
+                                ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                            }
+            `}
+                        >
+                          {variant.size}
+
+                          {isOutOfStock && (
+                            <span className="ml-1 text-[10px]">
+                              •
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Size not applicable
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <Button
                 size="lg"
                 onClick={handleAddToCart}
-                disabled={isAdding}
+                disabled={
+                  isAdding ||
+                  displayedStock <= 0 ||
+                  (hasVariants && !selectedVariant)
+                }
               >
                 {isAdding ? (
                   <div className="flex items-center gap-2">

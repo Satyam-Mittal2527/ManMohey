@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { getOrder } from "@/lib/orders";
+import {
+    getOrder,
+    cancelOrder,
+} from "@/lib/orders";
 
 
 export default function OrderDetailsPage() {
@@ -15,7 +18,83 @@ export default function OrderDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [cancelling, setCancelling] = useState(false);
 
+    const orderSteps = [
+        "PENDING",
+        "CONFIRMED",
+        "SHIPPED",
+        "DELIVERED",
+    ];
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case "PENDING":
+                return "bg-yellow-100 text-yellow-700";
+
+            case "CONFIRMED":
+                return "bg-blue-100 text-blue-700";
+
+            case "SHIPPED":
+                return "bg-violet-100 text-violet-700";
+
+            case "DELIVERED":
+                return "bg-green-100 text-green-700";
+
+            case "CANCELLED":
+                return "bg-red-100 text-red-700";
+
+            default:
+                return "bg-gray-100 text-gray-700";
+        }
+    };
+
+    const formatStatus = (status) => {
+        if (!status) return "";
+
+        return (
+            status.charAt(0) +
+            status.slice(1).toLowerCase()
+        );
+    };
+
+    const handleCancelOrder = async () => {
+        if (!order) return;
+
+        const confirmed = window.confirm(
+            "Are you sure you want to cancel this order?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setCancelling(true);
+
+            const response = await cancelOrder(order.id);
+
+            setOrder((previousOrder) => ({
+                ...previousOrder,
+                status: response.data.status,
+                updated_at: response.data.updated_at,
+            }));
+
+            alert("Order cancelled successfully");
+
+        } catch (error) {
+            console.error(
+                "Failed to cancel order:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Unable to cancel order"
+            );
+        } finally {
+            setCancelling(false);
+        }
+    };
     useEffect(() => {
 
         if (!orderId) {
@@ -144,15 +223,115 @@ export default function OrderDetailsPage() {
                         </div>
 
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
 
-                            <span className="rounded-full bg-yellow-100 px-4 py-2 text-sm font-medium text-yellow-700">
+                            <span
+                                className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(
+                                    order.status
+                                )}`}
+                            >
                                 {order.status}
                             </span>
+                            {order.status !== "CANCELLED" && (
+                                <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
-                            <span className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-                                Payment: {order.payment_status}
-                            </span>
+                                    <h2 className="text-sm font-semibold text-gray-900">
+                                        Order Progress
+                                    </h2>
+
+                                    <div className="mt-7 flex items-start">
+
+                                        {orderSteps.map((step, index) => {
+
+                                            const currentIndex =
+                                                orderSteps.indexOf(order.status);
+
+                                            const completed =
+                                                index <= currentIndex;
+
+                                            return (
+                                                <div
+                                                    key={step}
+                                                    className="flex flex-1 items-start"
+                                                >
+
+                                                    <div className="flex min-w-0 flex-col items-center">
+
+                                                        <div
+                                                            className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold ${completed
+                                                                ? "bg-violet-600 text-white"
+                                                                : "bg-gray-100 text-gray-400"
+                                                                }`}
+                                                        >
+                                                            {completed ? "✓" : index + 1}
+                                                        </div>
+
+                                                        <span
+                                                            className={`mt-2 text-center text-xs font-medium ${completed
+                                                                ? "text-gray-900"
+                                                                : "text-gray-400"
+                                                                }`}
+                                                        >
+                                                            {formatStatus(step)}
+                                                        </span>
+
+                                                    </div>
+
+                                                    {index < orderSteps.length - 1 && (
+                                                        <div
+                                                            className={`mt-4 h-0.5 flex-1 ${index < currentIndex
+                                                                ? "bg-violet-600"
+                                                                : "bg-gray-200"
+                                                                }`}
+                                                        />
+                                                    )}
+
+                                                </div>
+                                            );
+                                        })}
+
+                                    </div>
+
+                                </section>
+                            )}
+
+                            {order.status === "PENDING" && (
+                                <button
+                                    type="button"
+                                    onClick={handleCancelOrder}
+                                    disabled={cancelling}
+                                    className="rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {cancelling
+                                        ? "Cancelling..."
+                                        : "Cancel Order"}
+                                </button>
+                            )}
+
+                            {order.status === "CANCELLED" && (
+                                <section className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+
+                                    <div className="flex items-start gap-3">
+
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+                                            ✕
+                                        </div>
+
+                                        <div>
+                                            <h2 className="font-semibold text-red-800">
+                                                Order Cancelled
+                                            </h2>
+
+                                            <p className="mt-1 text-sm text-red-700">
+                                                This order has been cancelled successfully.
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                </section>
+                            )}
 
                         </div>
 
@@ -165,23 +344,51 @@ export default function OrderDetailsPage() {
 
                     {/* Products */}
 
-                    <section className="rounded-xl border bg-white p-6 shadow-sm">
+                    <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
 
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Items
-                        </h2>
+                        <div className="flex items-center justify-between">
 
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Items
+                            </h2>
 
-                        <div className="mt-5 divide-y">
+                            <span className="text-sm text-gray-500">
+                                {order.items?.length || 0}{" "}
+                                {order.items?.length === 1 ? "item" : "items"}
+                            </span>
+
+                        </div>
+
+                        <div className="mt-5 divide-y divide-gray-100">
 
                             {order.items?.map((item) => (
 
                                 <div
                                     key={item.id}
-                                    className="flex flex-col justify-between gap-4 py-5 sm:flex-row"
+                                    className="flex gap-4 py-5"
                                 >
 
-                                    <div>
+                                    {/* Product image */}
+
+                                    <div className="h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+
+                                        {item.image ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.product_name}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full items-center justify-center text-xs text-gray-400">
+                                                No image
+                                            </div>
+                                        )}
+
+                                    </div>
+
+                                    {/* Product information */}
+
+                                    <div className="min-w-0 flex-1">
 
                                         <h3 className="font-medium text-gray-900">
                                             {item.product_name}
@@ -189,13 +396,15 @@ export default function OrderDetailsPage() {
 
                                         <div className="mt-2 space-y-1 text-sm text-gray-500">
 
-                                            <p>
-                                                Quantity: {item.quantity}
-                                            </p>
-
                                             {item.size && (
                                                 <p>
                                                     Size: {item.size}
+                                                </p>
+                                            )}
+
+                                            {item.color && (
+                                                <p>
+                                                    Color: {item.color}
                                                 </p>
                                             )}
 
@@ -205,24 +414,31 @@ export default function OrderDetailsPage() {
                                                 </p>
                                             )}
 
+                                            <p>
+                                                Quantity: {item.quantity}
+                                            </p>
+
                                         </div>
 
                                     </div>
 
+                                    {/* Price */}
 
-                                    <div className="text-left sm:text-right">
+                                    <div className="shrink-0 text-right">
 
-                                        <p className="font-medium text-gray-900">
-                                            ₹{Number(
+                                        <p className="font-semibold text-gray-900">
+                                            ₹
+                                            {Number(
                                                 item.subtotal
                                             ).toFixed(2)}
                                         </p>
 
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            ₹{Number(
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            ₹
+                                            {Number(
                                                 item.unit_price
-                                            ).toFixed(2)} ×{" "}
-                                            {item.quantity}
+                                            ).toFixed(2)}{" "}
+                                            × {item.quantity}
                                         </p>
 
                                     </div>

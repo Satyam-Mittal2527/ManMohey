@@ -7,7 +7,7 @@ import {
   addAddress,
 } from "@/lib/addresses"
 
-import { createOrder } from "@/lib/orders"
+import { createOrder, verifyPayment, cancelPaymentOrder } from "@/lib/orders"
 
 interface CartItem {
   id: number
@@ -47,6 +47,12 @@ interface Address {
   is_default: boolean
 }
 
+declare global {
+  interface Window {
+    Razorpay: any
+  }
+}
+
 export default function checkOutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [selectedPayment, setSelectedPayment] = useState("Card")
@@ -75,6 +81,19 @@ export default function checkOutPage() {
   })
 
   const [placingOrder, setPlacingOrder] = useState(false)
+
+  useEffect(() => {
+    const script = document.createElement("script")
+
+    script.src = "https://checkout.razorpay.com/v1/checkout.js"
+    script.async = true
+
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
+  }, [])
 
   useEffect(() => {
     const loadAddresses = async () => {
@@ -121,14 +140,135 @@ export default function checkOutPage() {
       setPlacingOrder(true)
 
       const response = await createOrder(
-        selectedAddress.id
+        selectedAddress.id,
+        selectedPayment
       )
 
       const order = response.data
 
       console.log("Order created:", order)
+      console.log("Selected payment:", selectedPayment)
+      console.log("Razorpay Key:", process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID)
+      console.log("Razorpay object:", window.Razorpay)
+      console.log("Razorpay Order ID:", order.razorpay_order_id)
 
-      
+      if (selectedPayment === "UPI payment") {
+
+        if (!window.Razorpay) {
+          throw new Error(
+            "Razorpay Checkout failed to load"
+          )
+        }
+
+        const options = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+
+          amount: Math.round(order.total_amount * 100),
+
+          currency: "INR",
+
+          name: "ManMohey",
+
+          description: `Order ${order.order_number}`,
+
+          order_id: order.razorpay_order_id,
+
+          handler: async function (response: any) {
+
+            try {
+
+              console.log(
+                "Razorpay payment successful:",
+                response
+              );
+
+              const verification = await verifyPayment({
+                order_id: order.id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+
+              console.log(
+                "Payment verification successful:",
+                verification
+              );
+
+              alert("Payment successful!");
+
+              // Later we can redirect to the order details page here.
+
+            } catch (error: any) {
+
+              console.error(
+                "Payment verification failed:",
+                error
+              );
+
+              alert(
+                error.message ||
+                "Payment verification failed"
+              );
+
+            }
+
+          },
+
+          payment_failed: function (response: any) {
+            console.error(
+              "Razorpay payment failed:",
+              response
+            );
+
+            alert(
+              "Payment failed. Please try again."
+            );
+          },
+
+          prefill: {
+            name: selectedAddress.full_name,
+            contact: selectedAddress.phone_number,
+          },
+
+          theme: {
+            color: "#f87171",
+          },
+
+          modal: {
+            ondismiss: async function () {
+              try {
+                console.log("Razorpay payment popup closed");
+
+                await cancelPaymentOrder(order.id);
+
+                console.log(
+                  "Unpaid order cancelled successfully"
+                );
+
+                alert(
+                  "Payment was not completed. Your order has been cancelled."
+                );
+
+              } catch (error: any) {
+
+                console.error(
+                  "Failed to cancel unpaid order:",
+                  error
+                );
+
+                alert(
+                  error.message ||
+                  "Payment was not completed."
+                );
+              }
+            },
+          },
+        }
+
+        const razorpay = new window.Razorpay(options)
+
+        razorpay.open()
+      }
 
     } catch (error) {
       console.error(
