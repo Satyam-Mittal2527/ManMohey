@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+
   images: {
     remotePatterns: [
       {
@@ -10,6 +11,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination:
+          "https://manmohey-backend.onrender.com/api/:path*",
+      },
+    ];
+  },
+
 };
 
 export default nextConfig;
