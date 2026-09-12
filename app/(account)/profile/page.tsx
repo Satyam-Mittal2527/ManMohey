@@ -20,7 +20,9 @@ export default function Profile() {
     useEffect(() => {
         async function loadProfile() {
             try {
-                const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL as string) || "http://localhost:8000"
+                const baseUrl =
+                    process.env.NEXT_PUBLIC_BASE_URL ??
+                    "";
                 const res = await fetch(`${baseUrl}/api/User/me`, { credentials: "include" })
                 console.log("/api/User/me status:", res.status)
                 if (!res.ok) {
@@ -60,7 +62,9 @@ export default function Profile() {
         e.preventDefault()
             ; (async () => {
                 try {
-                    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL as string) || "http://localhost:8000"
+                    const baseUrl =
+                        process.env.NEXT_PUBLIC_BASE_URL ??
+                        "";
                     // split fullName into first and last
                     const parts = fullName.trim().split(/\s+/)
                     const first_name = parts.length > 0 ? parts[0] : ""
