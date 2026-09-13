@@ -12,15 +12,15 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination:
-          "https://manmohey-backend.onrender.com/api/:path*",
-      },
-    ];
-  },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination:
+  //         "https://manmohey-backend.onrender.com/api/:path*",
+  //     },
+  //   ];
+  // },
 
 };
 

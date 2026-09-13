@@ -338,12 +338,14 @@ export default function Product() {
                       <span className="h-2 w-2 rounded-full bg-green-600" />
                       In Stock
                     </span>
-
-                    {displayedStock <= 5 && (
+                    <span className="text-sm text-orange-600">
+                        Only {displayedStock} left
+                      </span>
+                    {/* {displayedStock <= 5 && (
                       <span className="text-sm text-orange-600">
                         Only {displayedStock} left
                       </span>
-                    )}
+                    )} */}
                   </>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600">
