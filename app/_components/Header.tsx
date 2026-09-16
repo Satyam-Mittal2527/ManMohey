@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, use } from "react"
+import { useRouter } from "next/navigation"
 
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -71,6 +72,7 @@ const winterItems = [
 export default function Header() {
 
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState<any | null>(null)
@@ -305,6 +307,12 @@ export default function Header() {
       alert(msg);
     }
   };
+
+  const submitSearch = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    const query = searchTerm.trim();
+    if (query) router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
   return (
     <div className="flex flex-col">
       <header className="bg-white border-b border-slate-200 shadow-sm">
@@ -426,7 +434,7 @@ z-50
             </div>
 
           </nav>
-          <div className="
+          <form onSubmit={submitSearch} className="
   hidden md:flex
   items-center
   bg-white
@@ -448,11 +456,19 @@ z-50
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
-          <div className="flex shrink-0 items-center gap-2 lg:gap-3 text-sm text-slate-700">
-            <div className="md:hidden flex items-center bg-white rounded-full border border-gray-300 p-2 w-10">
+            <button type="submit" aria-label="Search products" className="shrink-0">
               <Search className="h-5 w-5 text-gray-500" />
-            </div>
+            </button>
+          </form>
+          <div className="flex shrink-0 items-center gap-2 lg:gap-3 text-sm text-slate-700">
+            <button
+              type="button"
+              aria-label="Search products"
+              onClick={() => submitSearch()}
+              className="md:hidden flex items-center bg-white rounded-full border border-gray-300 p-2 w-10"
+            >
+              <Search className="h-5 w-5 text-gray-500" />
+            </button>
             <a
               href="/cart"
               className="flex shrink-0 items-center gap-2 rounded-full border border-slate-200 px-3 py-2 hover:border-slate-300 hover:text-slate-900"

@@ -126,6 +126,10 @@ export default function checkOutPage() {
   }, [])
 
   const handlePlaceOrder = async () => {
+    console.log("===== PLACE ORDER CLICKED =====");
+    console.log("selectedAddress:", selectedAddress);
+    console.log("cartItems:", cartItems);
+    console.log("placingOrder:", placingOrder);
     if (!selectedAddress) {
       alert("Please select a shipping address.")
       return
@@ -538,6 +542,7 @@ export default function checkOutPage() {
                   ? "Placing Order..."
                   : "Place Order"}
               </button>
+              
 
               <p className="mt-4 text-center text-xs text-slate-500">
                 By placing your order, you agree to Shopbop.com’s privacy notice and condition of use.
