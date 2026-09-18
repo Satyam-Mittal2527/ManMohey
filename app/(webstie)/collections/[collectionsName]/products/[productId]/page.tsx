@@ -7,6 +7,7 @@ import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRi
 import Image from "next/image";
 import { fetchProductById } from "@/lib/api";
 import { addToCart } from "@/lib/checkout";
+import { addToWishlist, isProductWishlisted, removeFromWishlist } from "@/lib/wishlist";
 import RelatedProducts from "./RelatedProduct";
 
 interface ProductImage {
@@ -97,6 +98,15 @@ export default function Product() {
   useEffect(() => {
     if (!product) return;
 
+    const checkWishlist = async () => {
+      const result = await isProductWishlisted(product.id);
+      if (result.success) {
+        setIsLiked(result.wishlisted);
+      }
+    };
+
+    checkWishlist();
+
     if (product.variants?.length > 0) {
       const firstAvailableVariant = product.variants.find(
         (variant) => (variant.stock ?? 0) > 0
@@ -144,6 +154,39 @@ export default function Product() {
   const handleBuyNow = () => {
     handleAddToCart();
     // setTimeout(() => router.push("/cart"), 500);
+  };
+
+  const handleWishlistToggle = async () => {
+    if (!product) return;
+
+    if (isLiked) {
+      const result = await removeFromWishlist(product.id);
+      if (result.success) {
+        setIsLiked(false);
+        return;
+      }
+
+      if (result.status === 401) {
+        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+        return;
+      }
+
+      alert(result.message || "Unable to update wishlist.");
+      return;
+    }
+
+    const result = await addToWishlist(product.id);
+    if (result.success) {
+      setIsLiked(true);
+      return;
+    }
+
+    if (result.status === 401) {
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      return;
+    }
+
+    alert(result.message || "Unable to add item to wishlist.");
   };
 
   const handleQuantityChange = (
@@ -459,13 +502,11 @@ export default function Product() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsLiked(!isLiked)}
-
+                onClick={handleWishlistToggle}
+                className={isLiked ? "text-pink-600" : "text-slate-700"}
               >
-                <Heart
-
-                />
-                Add to Wishlist
+                <Heart className="mr-2 h-4 w-4" fill={isLiked ? "currentColor" : "none"} />
+                {isLiked ? "Saved to Wishlist" : "Add to Wishlist"}
               </Button>
 
               <Button

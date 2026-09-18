@@ -73,6 +73,7 @@ export default function Header() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
+  const openAuthModal = () => setShowLoginPopup(true)
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState<any | null>(null)
@@ -212,6 +213,15 @@ export default function Header() {
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
+  useEffect(() => {
+    const handleOpenAuthModal = () => {
+      setShowLoginPopup(true)
+    }
+
+    window.addEventListener("open-auth-modal", handleOpenAuthModal)
+    return () => window.removeEventListener("open-auth-modal", handleOpenAuthModal)
   }, [])
 
   // localStorage helpers (store only non-sensitive user info)
@@ -479,7 +489,7 @@ z-50
 
             <div className="relative">
               <Button variant="outline" onClick={() => {
-                if (!isSignedIn) setShowLoginPopup(true)
+                if (!isSignedIn) openAuthModal()
                 else setProfilePageClick(true)
               }}>
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-600"><i className="bi bi-person-circle"></i></span>
@@ -493,6 +503,9 @@ z-50
                     </Link>
                     <Link href="/orders">
                       <span className="block px-2 py-1 hover:bg-slate-100">Orders</span>
+                    </Link>
+                    <Link href="/wishlist">
+                      <span className="block px-2 py-1 hover:bg-slate-100">Wishlist</span>
                     </Link>
                     <button onClick={() => setProfilePageClick(false)} className="mt-2 w-full text-left px-2 py-1 text-sm text-slate-600 hover:bg-slate-100">Close</button>
                     <button
