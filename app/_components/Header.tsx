@@ -73,7 +73,17 @@ export default function Header() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
-  const openAuthModal = () => setShowLoginPopup(true)
+  const clearCachedAuthData = () => {
+    try {
+      localStorage.removeItem("MM_currentUser");
+    } catch (e) {
+      console.warn("clearCachedAuthData error", e);
+    }
+  };
+  const openAuthModal = () => {
+    if (!isSignedIn) clearCachedAuthData();
+    setShowLoginPopup(true)
+  }
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState<any | null>(null)
@@ -224,33 +234,13 @@ export default function Header() {
     return () => window.removeEventListener("open-auth-modal", handleOpenAuthModal)
   }, [])
 
-  // localStorage helpers (store only non-sensitive user info)
-  const LOCAL_KEY = "MM_currentUser";
-  const saveUser = (u: any | null) => {
-    try {
-      if (u) localStorage.setItem(LOCAL_KEY, JSON.stringify(u));
-      else localStorage.removeItem(LOCAL_KEY);
-    } catch (e) {
-      console.warn("localStorage save error", e);
-    }
-  };
-  const loadUserFromStorage = (): any | null => {
-    try {
-      const raw = localStorage.getItem(LOCAL_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      console.warn("localStorage load error", e);
-      return null;
-    }
-  };
-
   const setAndPersistUser = (u: any | null) => {
     setCurrentUser(u);
     setIsSignedIn(!!u);
-    saveUser(u);
+    if (!u) clearCachedAuthData();
   };
 
-  // load current user on mount: try backend then fallback to localStorage
+  // load current user from the authenticated session only; avoid stale localStorage user data
   useEffect(() => {
     (async () => {
       const data = await GetCurrentUser();
@@ -259,8 +249,7 @@ export default function Header() {
         return;
       }
 
-      const stored = loadUserFromStorage();
-      if (stored) setAndPersistUser(stored);
+      setAndPersistUser(null);
     })();
   }, []);
 
@@ -493,7 +482,11 @@ z-50
                 else setProfilePageClick(true)
               }}>
                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-600"><i className="bi bi-person-circle"></i></span>
-                <span className="hidden md:flex">{currentUser?.user_metadata?.display_name || currentUser?.email || 'Profile'}</span>
+                <span className="hidden md:flex">
+                  {currentUser?.first_name || currentUser?.last_name
+                    ? `${currentUser?.first_name || ""} ${currentUser?.last_name || ""}`.trim()
+                    : currentUser?.user_metadata?.display_name || currentUser?.email || 'Profile'}
+                </span>
               </Button>
               {profilePageClick && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
@@ -515,6 +508,7 @@ z-50
                         } catch (e) {
                           console.warn('logout error', e);
                         }
+                        clearCachedAuthData();
                         setAndPersistUser(null);
                         setProfilePageClick(false);
 
