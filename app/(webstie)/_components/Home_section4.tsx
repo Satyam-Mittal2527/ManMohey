@@ -13,7 +13,7 @@ export default function Home_section4() {
 
                    
                     <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-center bg-white">
-                        <p className="text-sm font-semibold text-indigo-600 mb-2">Premium Products</p>
+                        <p className="text-sm font-semibold text-indigo-600 mb-2">Our Collection</p>
                         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Shop Handpicked, Premium Ethnic Wear</h2>
                         <p className="text-gray-600 mb-6">Explore our curated selection of sarees, lehengas and more — crafted with premium fabrics and exclusive designs for special occasions.</p>
                         <div className="flex items-center gap-4">

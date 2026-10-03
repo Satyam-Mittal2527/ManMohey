@@ -57,7 +57,7 @@ export default function Collection() {
 
     const params = useParams();
 
-    const collectionSlug = params.collectionsName as string;
+    const collectionSlug = "regular";
 
     const [products, setProducts] = useState<Product[]>([]);
     const [category, setCategory] = useState<Category | null>(null);
