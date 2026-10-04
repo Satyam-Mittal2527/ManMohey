@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 import { getCart } from "@/lib/checkout"
 import {
   getAddresses,
@@ -53,10 +54,13 @@ declare global {
   }
 }
 
-export default function checkOutPage() {
+export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [selectedPayment, setSelectedPayment] = useState("Card")
   const [loading, setLoading] = useState(true)
+  const [cartError, setCartError] = useState<string | null>(null)
+  const [addressError, setAddressError] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [addressOpen, setAddressOpen] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
 
@@ -99,10 +103,11 @@ export default function checkOutPage() {
     const loadAddresses = async () => {
       try {
         setAddressLoading(true)
+        setAddressError(null)
 
         const response = await getAddresses()
 
-        const data: Address[] = response.data || response
+        const data: Address[] = Array.isArray(response.data) ? response.data : Array.isArray(response) ? response : []
 
         setAddresses(data)
 
@@ -117,6 +122,7 @@ export default function checkOutPage() {
         }
       } catch (error) {
         console.error("Failed to load addresses:", error)
+        setAddressError("Unable to load saved addresses. You can retry or add a new address.")
       } finally {
         setAddressLoading(false)
       }
@@ -126,6 +132,7 @@ export default function checkOutPage() {
   }, [])
 
   const handlePlaceOrder = async () => {
+    setCheckoutError(null)
     console.log("===== PLACE ORDER CLICKED =====");
     console.log("selectedAddress:", selectedAddress);
     console.log("cartItems:", cartItems);
@@ -280,11 +287,7 @@ export default function checkOutPage() {
         error
       )
 
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to place order"
-      )
+      setCheckoutError(error instanceof Error ? error.message : "Failed to place order. Please try again.")
     } finally {
       setPlacingOrder(false)
     }
@@ -327,7 +330,7 @@ export default function checkOutPage() {
         error
       )
 
-      alert("Failed to save address")
+      setAddressError("Failed to save address. Please check your details and try again.")
     } finally {
       setSavingAddress(false)
     }
@@ -338,9 +341,10 @@ export default function checkOutPage() {
     const loadCart = async () => {
       try {
         setLoading(true)
+        setCartError(null)
         const data = await getCart()
         setCartItems(
-          data.items.map((item: any) => ({
+          (data?.items ?? []).map((item: any) => ({
             id: item.id,
             productId: item.product_id,
             name: item.name,
@@ -352,6 +356,7 @@ export default function checkOutPage() {
         )
       } catch (error) {
         console.error("Failed to load cart:", error)
+        setCartError("Unable to load your cart. Please try again.")
       } finally {
         setLoading(false)
       }
@@ -375,6 +380,45 @@ export default function checkOutPage() {
       maximumFractionDigits: 2,
     }).format(value)
 
+  if (loading) {
+    return (
+      <main className="min-h-[60vh] bg-slate-50 px-4 py-16" aria-busy="true" aria-live="polite">
+        <div className="mx-auto max-w-7xl animate-pulse space-y-6">
+          <div className="h-9 w-56 rounded bg-slate-200" />
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div className="h-72 rounded-3xl bg-white" />
+            <div className="h-72 rounded-3xl bg-white" />
+          </div>
+        </div>
+        <span className="sr-only">Loading checkout...</span>
+      </main>
+    )
+  }
+
+  if (cartError) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center bg-slate-50 px-4 py-16">
+        <div className="max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center" role="alert">
+          <h1 className="text-2xl font-semibold text-slate-900">Checkout couldn&apos;t load</h1>
+          <p className="mt-3 text-sm text-red-700">{cartError}</p>
+          <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-2xl bg-slate-900 px-5 py-3 text-white">Try again</button>
+        </div>
+      </main>
+    )
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center bg-slate-50 px-4 py-16">
+        <div className="max-w-lg rounded-3xl border border-slate-200 bg-white p-8 text-center">
+          <h1 className="text-2xl font-semibold text-slate-900">Your cart is empty</h1>
+          <p className="mt-3 text-slate-600">Add something to your bag before checking out.</p>
+          <Link href="/collections" className="mt-6 inline-flex rounded-2xl bg-slate-900 px-5 py-3 text-white">Continue shopping</Link>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main className="bg-slate-50 min-h-screen py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -392,7 +436,7 @@ export default function checkOutPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">Payment method</h2>
-                  <p className="mt-2 text-sm text-slate-500">Choose how you'd like to pay for this order.</p>
+                  <p className="mt-2 text-sm text-slate-500">Choose how you&apos;d like to pay for this order.</p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className="rounded-3xl bg-slate-100 px-4 py-3 text-sm font-medium text-slate-700">
@@ -419,6 +463,9 @@ export default function checkOutPage() {
               </div>
 
               <div className="mt-6 space-y-4">
+                {addressLoading && <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-600" role="status">Loading saved addresses...</p>}
+                {addressError && <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">{addressError}</div>}
+                {!addressLoading && !addressError && addresses.length === 0 && <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">No saved address yet. Add a shipping address to continue.</p>}
                 {stepCards.map((step) => {
                   const isAddressStep =
                     step.title === "Add Shipping Address"
@@ -542,6 +589,7 @@ export default function checkOutPage() {
                   ? "Placing Order..."
                   : "Place Order"}
               </button>
+              {checkoutError && <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{checkoutError}</p>}
               
 
               <p className="mt-4 text-center text-xs text-slate-500">

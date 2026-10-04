@@ -149,6 +149,9 @@ function SearchResults() {
 
       {isLoading && <p className="mt-8 text-slate-500">Searching...</p>}
       {!isLoading && errorMessage && <p className="mt-8 text-red-600">{errorMessage}</p>}
+      {!isLoading && !errorMessage && !query && (
+        <p className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-6 text-slate-600" role="status">Enter a search term to find products.</p>
+      )}
       {!isLoading && !errorMessage && query && products.length === 0 && (
         <p className="mt-8 text-slate-500">No products matched your search.</p>
       )}
@@ -199,7 +202,7 @@ function SearchResults() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<main className="container mx-auto px-4 py-12">Searching...</main>}>
+    <Suspense fallback={<main className="container mx-auto animate-pulse space-y-6 px-4 py-12" aria-busy="true"><div className="h-9 w-72 rounded bg-slate-200" /><div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 4 }).map((_, index) => <div key={index} className="space-y-4 rounded-xl border p-4"><div className="aspect-[3/4] rounded bg-slate-200" /><div className="h-4 rounded bg-slate-200" /></div>)}</div><span className="sr-only">Preparing search...</span></main>}>
       <SearchResults />
     </Suspense>
   );

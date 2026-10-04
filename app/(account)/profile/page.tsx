@@ -316,6 +316,7 @@ export default function Profile() {
             {error ? (
               <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
                 {error}
+                <button type="button" onClick={() => window.location.reload()} className="ml-3 underline">Try again</button>
               </div>
             ) : null}
 

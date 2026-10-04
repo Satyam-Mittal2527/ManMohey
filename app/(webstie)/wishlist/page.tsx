@@ -9,42 +9,65 @@ export default function WishlistPage() {
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<number | null>(null);
 
   useEffect(() => {
+    let isActive = true;
     const loadWishlist = async () => {
       setIsLoading(true);
-      const result = await getWishlist();
+      setLoadError(null);
+      try {
+        const result = await getWishlist();
 
-      if (result.success) {
-        setItems(result.items || []);
-        setIsAuthenticated(true);
-      } else if (result.error === "unauthorized") {
-        setIsAuthenticated(false);
-        setItems([]);
-      } else {
-        setItems([]);
-        setIsAuthenticated(true);
+        if (!isActive) return;
+        if (result.success) {
+          setItems(result.items || []);
+          setIsAuthenticated(true);
+        } else if (result.error === "unauthorized") {
+          setIsAuthenticated(false);
+          setItems([]);
+        } else {
+          setItems([]);
+          setIsAuthenticated(true);
+          setLoadError("Unable to load your wishlist. Please try again.");
+        }
+      } catch (error) {
+        console.error("Failed to load wishlist:", error);
+        if (isActive) setLoadError("Unable to load your wishlist. Please try again.");
+      } finally {
+        if (isActive) setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
-    loadWishlist();
-  }, []);
+    void loadWishlist();
+    return () => { isActive = false; };
+  }, [retryKey]);
 
   const handleRemove = async (productId: number) => {
-    const result = await removeFromWishlist(productId);
-    if (result.success) {
-      setItems((current) => current.filter((product) => Number(product.id ?? product.product_id ?? product?.products?.id) !== Number(productId)));
-      return;
-    }
+    setActionError(null);
+    setRemovingId(productId);
+    try {
+      const result = await removeFromWishlist(productId);
+      if (result.success) {
+        setItems((current) => current.filter((product) => Number(product.id ?? product.product_id ?? product?.products?.id) !== Number(productId)));
+        return;
+      }
 
-    if (result.status === 401) {
-      window.dispatchEvent(new CustomEvent("open-auth-modal"));
-      return;
-    }
+      if (result.status === 401) {
+        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+        return;
+      }
 
-    alert(result.message || "Unable to remove item from wishlist.");
+      setActionError(result.message || "Unable to remove item from wishlist.");
+    } catch (error) {
+      console.error("Failed to remove wishlist item:", error);
+      setActionError("Unable to remove item from wishlist. Please try again.");
+    } finally {
+      setRemovingId(null);
+    }
   };
 
   if (isLoading) {
@@ -81,6 +104,18 @@ export default function WishlistPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <main className="container mx-auto max-w-xl px-4 py-20 text-center">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-8" role="alert">
+          <h1 className="text-2xl font-semibold text-slate-900">Wishlist unavailable</h1>
+          <p className="mt-3 text-sm text-red-700">{loadError}</p>
+          <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-6 rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white hover:bg-slate-700">Try again</button>
+        </div>
+      </main>
+    );
+  }
+
   if (!items.length) {
     return (
       <div className="container mx-auto max-w-xl px-4 py-20 text-center">
@@ -110,6 +145,7 @@ export default function WishlistPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {actionError && <p className="col-span-full rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert">{actionError}</p>}
         {items.map((product: any) => {
           const item = product?.products ?? product;
           const coverImage = item?.product_images?.find((img: any) => img.display_order === 1) || item?.product_images?.[0];
@@ -126,8 +162,9 @@ export default function WishlistPage() {
                 <button
                   type="button"
                   aria-label="Remove from wishlist"
+                  disabled={removingId === productId}
                   onClick={() => handleRemove(productId)}
-                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm text-pink-600 hover:bg-slate-100"
+                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm text-pink-600 hover:bg-slate-100 disabled:opacity-50"
                 >
                   <Heart className="h-4 w-4 fill-current" />
                 </button>

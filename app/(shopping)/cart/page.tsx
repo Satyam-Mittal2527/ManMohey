@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useEffect } from "react";
-import { Heart, Plus as PlusIcon, Minus as DashIcon, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Plus as PlusIcon, Minus as DashIcon, Trash2 } from "lucide-react";
 import { getCart, updateCartItem, removeCartItem } from "@/lib/checkout";
 interface CartItem {
     id: number;
@@ -14,21 +15,29 @@ interface CartItem {
     img: string;
 }
 
-export default function cart() {
+export default function CartPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
+    const [pendingItemId, setPendingItemId] = useState<number | null>(null);
 
     const increment = async (itemId: number) => {
         const item = cartItems.find(i => i.id === itemId);
         if (!item) return;
         
         try {
+            setActionError(null);
+            setPendingItemId(itemId);
             await updateCartItem(itemId, item.qty + 1);
             setCartItems(cartItems.map(item =>
                 item.id === itemId ? { ...item, qty: item.qty + 1 } : item
             ));
         } catch (error) {
             console.error("Failed to increment:", error);
+            setActionError("Unable to update the item quantity. Please try again.");
+        } finally {
+            setPendingItemId(null);
         }
     };
 
@@ -37,12 +46,17 @@ export default function cart() {
         if (!item || item.qty <= 1) return;
         
         try {
+            setActionError(null);
+            setPendingItemId(itemId);
             await updateCartItem(itemId, item.qty - 1);
             setCartItems(cartItems.map(item =>
                 item.id === itemId && item.qty > 1 ? { ...item, qty: item.qty - 1 } : item
             ));
         } catch (error) {
             console.error("Failed to decrement:", error);
+            setActionError("Unable to update the item quantity. Please try again.");
+        } finally {
+            setPendingItemId(null);
         }
     };
 
@@ -50,21 +64,31 @@ export default function cart() {
         if (newQty < 1) return;
         
         try {
+            setActionError(null);
+            setPendingItemId(itemId);
             await updateCartItem(itemId, newQty);
             setCartItems(cartItems.map(item =>
                 item.id === itemId ? { ...item, qty: newQty } : item
             ));
         } catch (error) {
             console.error("Failed to update quantity:", error);
+            setActionError("Unable to update the item quantity. Please try again.");
+        } finally {
+            setPendingItemId(null);
         }
     };
 
     const removeItem = async (itemId: number) => {
         try {
+            setActionError(null);
+            setPendingItemId(itemId);
             await removeCartItem(itemId);
             setCartItems(cartItems.filter(item => item.id !== itemId));
         } catch (error) {
             console.error("Failed to remove item:", error);
+            setActionError("Unable to remove this item. Please try again.");
+        } finally {
+            setPendingItemId(null);
         }
     };
 
@@ -74,10 +98,10 @@ export default function cart() {
     const loadCart = async () => {
         try {
             setLoading(true);
+            setError(null);
             const data = await getCart();
-            console.log("Cart data:", data);
             setCartItems(
-                data.items.map((item: any) => ({
+                (data?.items ?? []).map((item: any) => ({
                     id: item.id,
                     productId: item.product_id,
                     name: item.name,
@@ -89,6 +113,7 @@ export default function cart() {
             );
         } catch (err) {
             console.error(err);
+            setError("We couldn't load your cart. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -96,6 +121,43 @@ export default function cart() {
     useEffect(() => {
         loadCart();
     }, []);
+
+    if (loading) {
+        return (
+            <main id="main" className="min-h-screen bg-gray-50 px-4 py-16" aria-busy="true" aria-live="polite">
+                <div className="mx-auto max-w-7xl animate-pulse space-y-6">
+                    <div className="h-8 w-40 rounded bg-gray-200" />
+                    <div className="h-40 rounded-lg bg-white" />
+                    <div className="h-12 rounded bg-gray-200" />
+                </div>
+                <span className="sr-only">Loading your cart...</span>
+            </main>
+        );
+    }
+
+    if (error) {
+        return (
+            <main id="main" className="min-h-[50vh] bg-gray-50 px-4 py-20">
+                <div className="mx-auto max-w-xl rounded-xl border border-red-200 bg-white p-8 text-center" role="alert">
+                    <h1 className="text-2xl font-semibold text-gray-900">Your cart couldn&apos;t be loaded</h1>
+                    <p className="mt-3 text-sm text-red-700">{error}</p>
+                    <button type="button" onClick={loadCart} className="mt-6 rounded bg-gray-900 px-5 py-3 text-white hover:bg-gray-700">Try again</button>
+                </div>
+            </main>
+        );
+    }
+
+    if (cartItems.length === 0) {
+        return (
+            <main id="main" className="flex min-h-[50vh] items-center justify-center bg-gray-50 px-4 py-16">
+                <div className="max-w-lg rounded-xl border border-gray-200 bg-white p-10 text-center">
+                    <h1 className="text-2xl font-semibold text-gray-900">Your cart is empty</h1>
+                    <p className="mt-3 text-gray-600">Find something you love and it will be waiting here.</p>
+                    <Link href="/collections" className="mt-6 inline-flex rounded bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-700">Continue shopping</Link>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main id="main" className="bg-gray-50 min-h-screen">
@@ -112,6 +174,7 @@ export default function cart() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2">
+                            {actionError && <p className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">{actionError}</p>}
                             <div className="bg-white rounded-lg shadow-sm divide-y divide-gray-200">
                                 {cartItems.map((item) => (
                                     <article key={item.id} className="flex items-center gap-4 p-4">
@@ -123,16 +186,16 @@ export default function cart() {
                                             <div className="text-sm text-gray-500">{item.variant}</div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button onClick={() => decrement(item.id)} aria-label="Decrease" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100">
+                                            <button disabled={pendingItemId === item.id} onClick={() => decrement(item.id)} aria-label="Decrease" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-50">
                                                 <DashIcon size={18} />
                                             </button>
-                                            <input type="number" value={item.qty} onChange={(e) => setQty(item.id, Number(e.target.value))} aria-label="Quantity" className="w-16 text-center border rounded h-8" min={1} />
-                                            <button onClick={() => increment(item.id)} aria-label="Increase" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100">
+                                            <input type="number" value={item.qty} disabled={pendingItemId === item.id} onChange={(e) => setQty(item.id, Number(e.target.value))} aria-label="Quantity" className="w-16 text-center border rounded h-8 disabled:opacity-50" min={1} />
+                                            <button disabled={pendingItemId === item.id} onClick={() => increment(item.id)} aria-label="Increase" className="h-8 w-8 flex items-center justify-center border rounded hover:bg-gray-100 disabled:opacity-50">
                                                 <PlusIcon size={18} />
                                             </button>
                                         </div>
                                         <div className="w-28 text-right font-medium text-gray-900">₹{(item.price * item.qty).toFixed(2)}</div>
-                                        <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 ml-4 transition-colors" aria-label="Remove">
+                                        <button disabled={pendingItemId === item.id} onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 ml-4 transition-colors disabled:opacity-50" aria-label="Remove">
                                             <Trash2 size={20} />
                                         </button>
                                     </article>
@@ -140,7 +203,7 @@ export default function cart() {
                             </div>
 
                             <div className="mt-6 flex gap-3 flex-wrap">
-                                <a href="/collections" className="px-4 py-2 border rounded text-gray-700">← Continue shopping</a>
+                                <Link href="/collections" className="px-4 py-2 border rounded text-gray-700">← Continue shopping</Link>
 
                             </div>
                         </div>
@@ -160,7 +223,7 @@ export default function cart() {
 
                             <div className="flex justify-between items-center mt-4 border-t pt-4 text-lg font-semibold"><span>Total</span><span>₹{total.toFixed(2)}</span></div>
 
-                            <a href="/checkout" className="block text-center mt-6 w-full bg-indigo-600 text-white px-4 py-3 rounded">Proceed to checkout →</a>
+                            <Link href="/checkout" className="block text-center mt-6 w-full bg-indigo-600 text-white px-4 py-3 rounded">Proceed to checkout →</Link>
 
                             <div className="flex justify-center gap-3 mt-6 flex-wrap">
                                 <span className="text-xs text-gray-500 px-3 py-1 bg-gray-50 rounded">VISA</span>

@@ -65,6 +65,7 @@ export default function Collection() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [retryKey, setRetryKey] = useState(0);
     const [filterGroups, setFilterGroups] = useState<Record<string, FilterGroup>>({});
     const collectionName = category?.name ?? "";
 
@@ -74,18 +75,21 @@ export default function Collection() {
     useEffect(() => {
         const getProducts = async () => {
             setIsLoading(true);
+            setErrorMessage(null);
             try {
                 const response = await fetchCollectionPage(collectionSlug);
 
-                const data = response.products;
+                const data = response?.products;
+                if (!data) throw new Error("Collection response is missing products");
 
-                setProducts(data.products);
-                setCategory(data.category);
-                setChildCategories(data.childCategories);
-                setFilterGroups(data.filters)
+                setProducts(data.products ?? []);
+                setCategory(data.category ?? null);
+                setChildCategories(data.childCategories ?? []);
+                setFilterGroups(data.filters ?? {})
             }
             catch (err) {
-                console.log(err);
+                console.error("Failed to load collection:", err);
+                setErrorMessage("Unable to load this collection. Please try again.");
             }
             finally {
                 setIsLoading(false);
@@ -93,7 +97,7 @@ export default function Collection() {
         }
         getProducts();
 
-    }, [collectionSlug]);
+    }, [collectionSlug, retryKey]);
 
     return (
 
@@ -115,8 +119,9 @@ export default function Collection() {
                                 ))}
                             </div>
                         ) : errorMessage ? (
-                            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
-                                {errorMessage}
+                            <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700" role="alert">
+                                <p>{errorMessage}</p>
+                                <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-4 rounded bg-red-700 px-4 py-2 font-medium text-white hover:bg-red-800">Try again</button>
                             </div>
                         ) : (
                             <CollectionProducts ProductsList={products} CollectionName={collectionName} />

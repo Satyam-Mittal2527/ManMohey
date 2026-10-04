@@ -17,6 +17,7 @@ export default function OrderDetailsPage() {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [retryKey, setRetryKey] = useState(0);
 
     const [cancelling, setCancelling] = useState(false);
 
@@ -106,9 +107,11 @@ export default function OrderDetailsPage() {
             try {
 
                 setLoading(true);
+                setError("");
 
                 const response = await getOrder(orderId);
 
+                if (!response?.data) throw new Error("Order not found");
                 setOrder(response.data);
 
             } catch (error) {
@@ -132,7 +135,7 @@ export default function OrderDetailsPage() {
 
         loadOrder();
 
-    }, [orderId]);
+    }, [orderId, retryKey]);
 
 
     if (loading) {
@@ -166,8 +169,9 @@ export default function OrderDetailsPage() {
                         ← Back to Orders
                     </Link>
 
-                    <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-600">
-                        {error || "Order not found"}
+                    <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-700" role="alert">
+                        <p>{error || "Order not found"}</p>
+                        {error && <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-3 font-semibold underline">Try again</button>}
                     </div>
 
                 </div>

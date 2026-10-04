@@ -15,6 +15,7 @@ export default function AddressesPage() {
     const [addresses, setAddresses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionError, setActionError] = useState("");
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [editingAddress, setEditingAddress] = useState(null);
@@ -46,6 +47,7 @@ export default function AddressesPage() {
 
         try {
             setSaving(true);
+            setActionError("");
 
             if (editingAddress) {
 
@@ -85,10 +87,10 @@ export default function AddressesPage() {
                 error
             );
 
-            alert(
+            setActionError(
                 editingAddress
-                    ? "Failed to update address."
-                    : "Failed to add address."
+                    ? "Failed to update address. Please try again."
+                    : "Failed to add address. Please try again."
             );
 
         } finally {
@@ -105,9 +107,8 @@ export default function AddressesPage() {
             const result =
                 await getAddresses();
 
-            setAddresses(
-                result.data || result || []
-            );
+            const data = Array.isArray(result.data) ? result.data : Array.isArray(result) ? result : [];
+            setAddresses(data);
 
         } catch (error) {
 
@@ -148,6 +149,7 @@ export default function AddressesPage() {
 
         try {
 
+            setActionError("");
             await deleteAddress(
                 addressId
             );
@@ -161,9 +163,7 @@ export default function AddressesPage() {
                 error
             );
 
-            alert(
-                "Failed to delete address."
-            );
+            setActionError("Failed to delete address. Please try again.");
         }
     }
 
@@ -174,6 +174,7 @@ export default function AddressesPage() {
 
         try {
 
+            setActionError("");
             await setDefaultAddress(
                 addressId
             );
@@ -187,9 +188,7 @@ export default function AddressesPage() {
                 error
             );
 
-            alert(
-                "Failed to set default address."
-            );
+            setActionError("Failed to set the default address. Please try again.");
         }
     }
 
@@ -250,13 +249,15 @@ export default function AddressesPage() {
 
 
             {error && (
-                <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm text-red-600">
-                    {error}
+                <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                    <p>{error}</p>
+                    <button type="button" onClick={loadAddresses} className="mt-3 font-semibold underline">Try again</button>
                 </div>
             )}
+            {actionError && <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{actionError}</div>}
 
 
-            {addresses.length === 0 ? (
+            {addresses.length === 0 && !error ? (
 
                 <div className="rounded-lg border border-dashed border-gray-300 px-6 py-16 text-center">
 
@@ -270,6 +271,22 @@ export default function AddressesPage() {
 
                     <button
                         type="button"
+                        onClick={() => {
+                            setEditingAddress(null);
+                            setFormData({
+                                full_name: "",
+                                phone_number: "",
+                                address_line_1: "",
+                                address_line_2: "",
+                                city: "",
+                                state: "",
+                                postal_code: "",
+                                country: "Nepal",
+                                address_type: "Home",
+                                is_default: false,
+                            });
+                            setIsFormOpen(true);
+                        }}
                         className="mt-5 rounded-md bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-700"
                     >
                         Add Your First Address
@@ -277,7 +294,7 @@ export default function AddressesPage() {
 
                 </div>
 
-            ) : (
+            ) : addresses.length > 0 ? (
 
                 <div className="grid gap-5 md:grid-cols-2">
 
@@ -405,7 +422,7 @@ export default function AddressesPage() {
 
                 </div>
 
-            )}
+            ) : null}
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
 

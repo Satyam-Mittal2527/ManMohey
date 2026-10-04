@@ -63,6 +63,8 @@ export default function ShopCollection() {
     const [collection, setCollection] = useState<Collection | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [retryKey, setRetryKey] = useState(0);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [loadMoreError, setLoadMoreError] = useState(false);
@@ -119,8 +121,9 @@ export default function ShopCollection() {
     }, [collectionSlug]);
 
     useEffect(() => {
-        if (initialRequestKeyRef.current === collectionSlug) return;
-        initialRequestKeyRef.current = collectionSlug;
+        const requestKey = `${collectionSlug}:${retryKey}`;
+        if (initialRequestKeyRef.current === requestKey) return;
+        initialRequestKeyRef.current = requestKey;
         const requestId = ++requestIdRef.current;
         requestBusyRef.current = true;
         hasNextPageRef.current = false;
@@ -134,11 +137,13 @@ export default function ShopCollection() {
         async function loadCollection() {
 
             setLoading(true);
+            setLoadError(null);
 
             try {
 
                 const data: CollectionResponse = await fetchShopCollection(collectionSlug, 1, PAGE_SIZE);
                 if (requestId !== requestIdRef.current) return;
+                if (!data?.collection) throw new Error("Collection was not found");
 
                 setCollection(data.collection);
 
@@ -151,6 +156,7 @@ export default function ShopCollection() {
             } catch (err) {
 
                 console.error(err);
+                if (requestId === requestIdRef.current) setLoadError("Unable to load this collection. Please try again.");
 
             } finally {
 
@@ -165,7 +171,7 @@ export default function ShopCollection() {
 
         loadCollection();
 
-    }, [collectionSlug]);
+    }, [collectionSlug, retryKey]);
 
     useEffect(() => {
         if (!hasNextPage || loading || loadingMore || loadMoreError || !sentinelRef.current) return;
@@ -183,11 +189,16 @@ export default function ShopCollection() {
     if (loading) {
 
         return (
-            <div className="container mx-auto py-20 text-center">
-                Loading...
+            <div className="container mx-auto grid gap-6 px-4 py-20 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true" aria-live="polite">
+                {Array.from({ length: 8 }).map((_, index) => <div key={index} className="animate-pulse rounded-xl border p-4"><div className="aspect-[3/4] rounded-lg bg-slate-200" /><div className="mt-4 h-4 w-3/4 rounded bg-slate-200" /><div className="mt-3 h-4 w-1/2 rounded bg-slate-200" /></div>)}
+                <span className="sr-only">Loading collection...</span>
             </div>
         );
 
+    }
+
+    if (loadError) {
+        return <main className="mx-auto max-w-xl px-4 py-24 text-center"><div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-8"><h1 className="text-2xl font-semibold text-slate-900">Collection unavailable</h1><p className="mt-3 text-red-700">{loadError}</p><button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-6 rounded-lg bg-slate-900 px-5 py-3 text-white">Try again</button></div></main>;
     }
 
     return (
@@ -215,7 +226,13 @@ bg-[#FCFAF7]
 
             <div className="container mx-auto py-10">
 
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center" role="status">
+                        <h2 className="text-xl font-semibold text-slate-900">No products in this collection yet</h2>
+                        <p className="mt-2 text-slate-600">Check back soon or explore our other collections.</p>
+                        <Link href="/collections" className="mt-5 inline-block text-pink-600 hover:underline">Browse collections</Link>
+                    </div>
+                ) : <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
 
                     {products.map((product) => (
 
@@ -257,9 +274,9 @@ bg-[#FCFAF7]
 
                     ))}
 
-                </div>
+                </div>}
 
-                <div ref={sentinelRef} className="py-8 text-center" aria-live="polite">
+                {products.length > 0 && <div ref={sentinelRef} className="py-8 text-center" aria-live="polite">
                     {loadingMore ? (
                         <span className="text-sm text-slate-500">Loading more products...</span>
                     ) : loadMoreError ? (
@@ -276,7 +293,7 @@ bg-[#FCFAF7]
                     ) : products.length > 0 && !hasNextPage ? (
                         <span className="text-sm text-slate-500">You&apos;ve reached the end.</span>
                     ) : null}
-                </div>
+                </div>}
 
             </div>
         </>

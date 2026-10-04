@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/app/(webstie)/_components/ui/button";
 import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -67,33 +68,41 @@ export default function Product() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
 
-  const { productId, collectionsName } = useParams<{
+  const { productId } = useParams<{
     productId: string;
-    collectionsName: string;
   }>();
   // console.log("Product ID:", productId);
   // console.log("Collection Name:", collectionsName); 
   useEffect(() => {
+    let isActive = true;
     const fetchProduct = async () => {
-      const response = await fetchProductById(productId);
+      setIsLoading(true);
+      setLoadError(null);
+      setProduct(null);
+      try {
+        const response = await fetchProductById(productId);
 
-      console.log(response);
+        if (!response?.product) throw new Error("Product not found");
 
-      if (response?.product) {
-
+        if (!isActive) return;
         setCurrentImageIndex(0);
-
         setProduct(response.product);
-
         setRelatedProducts(response.product.RelatedProducts || []);
-
+      } catch (error) {
+        console.error("Failed to load product:", error);
+        if (isActive) setLoadError("This product could not be loaded. It may have been removed or is temporarily unavailable.");
+      } finally {
+        if (isActive) setIsLoading(false);
       }
     }
-    fetchProduct();
-  }, [productId]);
-
+    void fetchProduct();
+    return () => { isActive = false; };
+  }, [productId, retryKey]);
 
   useEffect(() => {
     if (!product) return;
@@ -219,16 +228,31 @@ export default function Product() {
   };
   const selectedProduct = product;
 
-  if (!selectedProduct) {
+  if (isLoading) {
 
     return (
-      <div className="flex justify-center items-center h-[60vh]">
-
-        <div className="h-10 w-10 border-4 border-black border-t-transparent rounded-full animate-spin" />
-
+      <div className="mx-auto max-w-7xl animate-pulse px-4 py-12" aria-busy="true" aria-live="polite">
+        <div className="grid gap-10 lg:grid-cols-2">
+          <div className="aspect-square rounded-2xl bg-slate-200" />
+          <div className="space-y-5 py-4"><div className="h-8 w-3/4 rounded bg-slate-200" /><div className="h-6 w-1/3 rounded bg-slate-200" /><div className="h-24 rounded bg-slate-200" /><div className="h-12 rounded bg-slate-200" /></div>
+        </div>
+        <span className="sr-only">Loading product details...</span>
       </div>
     );
 
+  }
+
+  if (loadError || !selectedProduct) {
+    return (
+      <main className="flex min-h-[50vh] items-center justify-center px-4 py-16">
+        <div className="max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center" role="alert">
+          <h1 className="text-2xl font-semibold text-slate-900">Product unavailable</h1>
+          <p className="mt-3 text-slate-600">{loadError || "We couldn't find this product."}</p>
+          <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="mt-6 rounded-lg bg-slate-900 px-5 py-3 text-white hover:bg-slate-700">Try again</button>
+          <Link href="/collections" className="ml-3 inline-block text-sm font-medium text-pink-600 hover:underline">Browse collections</Link>
+        </div>
+      </main>
+    );
   }
   const variants = selectedProduct.variants || [];
 
@@ -261,13 +285,13 @@ export default function Product() {
         <div className="space-y-4">
           <div className="w-full max-w-[500px] mx-auto flex flex-col items-center px-4">
             <div className="rounded-xl shadow-lg overflow-hidden mb-4 w-full relative">
-              <Image
+              {images.length > 0 ? <Image
                 src={images[currentImageIndex] ?? "/placeholder.png"}
                 alt={selectedProduct.name}
                 width={600}
                 height={600}
                 className="w-full h-auto object-cover rounded-xl"
-              />
+              /> : <div className="flex aspect-square items-center justify-center bg-slate-100 text-sm text-slate-500">No product images available</div>}
 
               {/* Left arrow */}
               <button
@@ -522,7 +546,7 @@ export default function Product() {
         </div>
       </div>
       <span className="text-lg font-bold">Related Products</span>
-      <RelatedProducts productList={relatedProducts} />
+      {relatedProducts.length > 0 ? <RelatedProducts productList={relatedProducts} /> : <p className="mt-4 text-sm text-slate-500">No related products available right now.</p>}
     </div>
   );
 }

@@ -110,7 +110,13 @@ export default function CollectionProducts({
                 </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {ProductsList.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center" role="status">
+                    <h3 className="text-lg font-semibold text-slate-900">No products found</h3>
+                    <p className="mt-2 text-sm text-slate-600">Try another collection or clear your filters.</p>
+                    <Link href="/collections" className="mt-5 inline-flex rounded-full bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700">Browse collections</Link>
+                </div>
+            ) : <div className="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
                 {ProductsList.map((product) => {
 
@@ -184,7 +190,7 @@ export default function CollectionProducts({
                         </div>
                     );
                 })}
-            </div>
+            </div>}
         </>
     );
 }
