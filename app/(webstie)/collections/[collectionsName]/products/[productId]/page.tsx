@@ -6,10 +6,51 @@ import Link from "next/link";
 import { Button } from "@/app/(webstie)/_components/ui/button";
 import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { fetchProductById } from "@/lib/api";
+import { fetchProductById, fetchProductReviews } from "@/lib/api";
 import { addToCart } from "@/lib/checkout";
 import { addToWishlist, isProductWishlisted, removeFromWishlist } from "@/lib/wishlist";
 import RelatedProducts from "./RelatedProduct";
+
+interface ReviewImage {
+  id: string | number;
+  image_url: string;
+  display_order: number;
+}
+
+interface ReviewUser {
+  first_name: string;
+  last_name: string;
+  display_name: string;
+}
+
+interface Review {
+  id: string;
+  product_id: number;
+  user_id: string;
+  rating: number;
+  comment: string;
+  is_verified_purchase: boolean;
+  created_at: string | null;
+  user: ReviewUser;
+  images: ReviewImage[];
+}
+
+interface ReviewSummary {
+  average_rating: number;
+  total_reviews: number;
+  rating_distribution: {
+    "5": number;
+    "4": number;
+    "3": number;
+    "2": number;
+    "1": number;
+  };
+}
+
+interface ReviewsResponse {
+  reviews: Review[];
+  summary: ReviewSummary;
+}
 
 interface ProductImage {
   id: number;
@@ -68,6 +109,10 @@ export default function Product() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [reviews, setReviews] = useState<ReviewsResponse | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [selectedReviewImage, setSelectedReviewImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -90,9 +135,15 @@ export default function Product() {
         if (!response?.product) throw new Error("Product not found");
 
         if (!isActive) return;
+        const nextProduct = response.product;
+        const nextVariants: ProductVariant[] = nextProduct.variants ?? [];
+        const firstAvailableVariant = nextVariants.find((variant: ProductVariant) => (variant.stock ?? 0) > 0);
+
         setCurrentImageIndex(0);
-        setProduct(response.product);
-        setRelatedProducts(response.product.RelatedProducts || []);
+        setProduct(nextProduct);
+        setRelatedProducts(nextProduct.RelatedProducts || []);
+        setSelectedSize(firstAvailableVariant ? firstAvailableVariant.size : nextVariants[0]?.size ?? null);
+        setQuantity(1);
       } catch (error) {
         console.error("Failed to load product:", error);
         if (isActive) setLoadError("This product could not be loaded. It may have been removed or is temporarily unavailable.");
@@ -115,22 +166,37 @@ export default function Product() {
     };
 
     checkWishlist();
+  }, [product]);
 
-    if (product.variants?.length > 0) {
-      const firstAvailableVariant = product.variants.find(
-        (variant) => (variant.stock ?? 0) > 0
-      );
+  useEffect(() => {
+    if (!product) return;
 
-      if (firstAvailableVariant) {
-        setSelectedSize(firstAvailableVariant.size);
-      } else {
-        setSelectedSize(product.variants[0]?.size ?? null);
+    let isActive = true;
+
+    const loadReviews = async () => {
+      setReviewsLoading(true);
+      setReviewsError(null);
+
+      try {
+        const reviewProductId = product.id ?? Number(productId);
+        const response = await fetchProductReviews(reviewProductId || product.slug, 1, 10);
+        if (!isActive) return;
+        setReviews(response);
+      } catch (error) {
+        if (!isActive) return;
+        console.error("Failed to load reviews:", error);
+        setReviewsError("Unable to load reviews right now.");
+        setReviews(null);
+      } finally {
+        if (isActive) setReviewsLoading(false);
       }
-    } else {
-      setSelectedSize(null);
-    }
+    };
 
-    setQuantity(1);
+    void loadReviews();
+
+    return () => {
+      isActive = false;
+    };
   }, [product]);
 
 
@@ -146,7 +212,7 @@ export default function Product() {
         product.id,
         quantity,
         selectedSize,
-        selectedVariant?.id ?? null
+        selectedVariant?.id ?? undefined
       );
       console.log("Cart Updated:", response);
       setJustAdded(true);
@@ -277,6 +343,36 @@ export default function Product() {
       ?.sort((a, b) => a.display_order - b.display_order)
       .map((img) => img.public_url) || [];
 
+  const formatReviewDate = (value: string | null) => {
+    if (!value) return "";
+
+    try {
+      const date = new Date(value);
+      return new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(date);
+    } catch {
+      return value;
+    }
+  };
+
+  const renderStars = (rating: number, sizeClass = "h-4 w-4") => (
+    <div className="flex items-center gap-1 text-amber-500">
+      {Array.from({ length: 5 }, (_, index) => (
+        <span key={`${rating}-${index}`} className={sizeClass} aria-label={`${rating} out of 5 stars`}>
+          {index < rating ? "★" : "☆"}
+        </span>
+      ))}
+    </div>
+  );
+
+  const maxBarValue = Math.max(
+    ...Object.values(reviews?.summary?.rating_distribution ?? { "5": 0, "4": 0, "3": 0, "2": 0, "1": 0 }),
+    1,
+  );
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* <ProductBreadcrumb /> */}
@@ -343,13 +439,13 @@ export default function Product() {
             {selectedProduct.name}
           </h1>
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center gap-1">
-              {/* {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-              ))} */}
+            <div className="flex items-center gap-1 text-amber-500">
+              {reviews?.summary ? renderStars(Math.round(reviews.summary.average_rating), "h-4 w-4") : null}
             </div>
             <span className="text-sm text-muted-foreground">
-              (4.8) • 127 reviews
+              {reviews?.summary
+                ? `(${reviews.summary.average_rating.toFixed(1)}) • ${reviews.summary.total_reviews} reviews`
+                : "Product reviews"}
             </span>
           </div>
 
@@ -545,6 +641,156 @@ export default function Product() {
           </div>
         </div>
       </div>
+      <section className="mt-16 border-t border-slate-200 pt-10">
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-2xl font-bold text-slate-900">Customer Reviews</h2>
+          </div>
+
+          {reviewsLoading ? (
+            <div className="space-y-4 animate-pulse" aria-live="polite" aria-busy="true">
+              <div className="h-8 w-40 rounded bg-slate-200" />
+              <div className="h-4 w-56 rounded bg-slate-200" />
+              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+                <div className="h-40 rounded-2xl bg-slate-200" />
+                <div className="space-y-4">
+                  <div className="h-24 rounded-2xl bg-slate-200" />
+                  <div className="h-24 rounded-2xl bg-slate-200" />
+                </div>
+              </div>
+            </div>
+          ) : reviewsError ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {reviewsError}
+            </div>
+          ) : !reviews || reviews.reviews.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
+              <p className="text-lg font-semibold text-slate-900">No reviews yet</p>
+              <p className="mt-2 text-sm text-slate-600">Be the first to review this product.</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex items-end gap-2">
+                    <span className="text-4xl font-bold text-slate-900">
+                      {reviews.summary.average_rating.toFixed(1)}
+                    </span>
+                    <span className="pb-1 text-sm text-slate-500">out of 5</span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-1 text-lg text-amber-500">
+                    {renderStars(Math.round(reviews.summary.average_rating), "h-5 w-5")}
+                  </div>
+                  <p className="mt-3 text-sm text-slate-600">
+                    Based on {reviews.summary.total_reviews} review{reviews.summary.total_reviews === 1 ? "" : "s"}
+                  </p>
+
+                  <div className="mt-5 space-y-2">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = reviews.summary.rating_distribution[String(star) as keyof typeof reviews.summary.rating_distribution] ?? 0;
+                      const width = `${(count / maxBarValue) * 100}%`;
+
+                      return (
+                        <div key={star} className="flex items-center gap-2 text-sm text-slate-600">
+                          <span className="w-6 font-medium text-slate-700">{star}</span>
+                          <span className="text-amber-500">★</span>
+                          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+                            <div
+                              className="h-full rounded-full bg-amber-500"
+                              style={{ width }}
+                            />
+                          </div>
+                          <span className="w-6 text-right text-slate-500">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {reviews.reviews.map((review) => (
+                    <article key={review.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                      <div className="flex items-center gap-1 text-base text-amber-500">
+                        {renderStars(review.rating, "h-4 w-4")}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="text-base font-semibold text-slate-900">
+                          {review.user.display_name || "Customer"}
+                        </span>
+                        {review.is_verified_purchase && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] text-white">
+                              ✓
+                            </span>
+                            Verified Purchase
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700">
+                        {review.comment}
+                      </p>
+
+                      {review.images.length > 0 && (
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          {review.images.map((image) => (
+                            <button
+                              key={image.id ?? `${review.id}-${image.image_url}`}
+                              type="button"
+                              onClick={() => setSelectedReviewImage(image.image_url)}
+                              className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition hover:border-slate-400"
+                              aria-label={`Review photo for ${selectedProduct.name}`}
+                            >
+                              <Image
+                                src={image.image_url}
+                                alt={`Review photo for ${selectedProduct.name}`}
+                                width={120}
+                                height={120}
+                                className="h-24 w-24 object-cover sm:h-28 sm:w-28"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="mt-4 text-xs uppercase tracking-wide text-slate-500">
+                        {formatReviewDate(review.created_at)}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
+      {selectedReviewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4"
+          onClick={() => setSelectedReviewImage(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setSelectedReviewImage(null)}
+              className="absolute right-3 top-3 z-10 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-white hover:bg-slate-900"
+              aria-label="Close review image"
+            >
+              Close
+            </button>
+            <Image
+              src={selectedReviewImage}
+              alt={`Review photo for ${selectedProduct.name}`}
+              width={1200}
+              height={1200}
+              className="max-h-[90vh] w-auto object-contain"
+            />
+          </div>
+        </div>
+      )}
+
       <span className="text-lg font-bold">Related Products</span>
       {relatedProducts.length > 0 ? <RelatedProducts productList={relatedProducts} /> : <p className="mt-4 text-sm text-slate-500">No related products available right now.</p>}
     </div>
