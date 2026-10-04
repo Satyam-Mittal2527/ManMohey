@@ -5,7 +5,7 @@ import Filter_bar from "./FilterBar";
 import MobileFilterDrawer from "./MobileFilterDrawer";
 
 import { fetchCollectionPage } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
 interface ProductImage {
@@ -57,11 +57,25 @@ interface CollectionResponse {
     childCategories: Category[];
     products: Product[];
     filterGroups?: Record<string, FilterGroup>;
+    pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+    };
 }
+
+const PAGE_SIZE = 20;
 
 export default function Collection() {
     const params = useParams();
     const collectionSlug = params.collectionsName as string;
+
+    return <CollectionListing key={collectionSlug} collectionSlug={collectionSlug} />;
+}
+
+function CollectionListing({ collectionSlug }: { collectionSlug: string }) {
 
     const [category, setCategory] = useState<Category | null>(null);
     const [childCategories, setChildCategories] = useState<Category[]>([]);
@@ -73,7 +87,19 @@ export default function Collection() {
     const [maxPrice, setMaxPrice] = useState("");
     const [availability, setAvailability] = useState<"in_stock" | "out_of_stock" | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [loadMoreError, setLoadMoreError] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const nextPageRef = useRef(2);
+    const hasNextPageRef = useRef(false);
+    const isLoadingMoreRef = useRef(false);
+    const requestIdRef = useRef(0);
+    const firstPageRequestKeyRef = useRef<string | null>(null);
+    const activeCollectionRef = useRef(collectionSlug);
+    const activeQueryRef = useRef<Record<string, string | number | string[] | undefined>>({});
+    const inFlightPagesRef = useRef(new Set<string>());
 
     const buildQuery = () => {
         const query: Record<string, string | number | string[] | undefined> = {};
@@ -103,30 +129,132 @@ export default function Collection() {
         return query;
     };
 
-    const loadCollection = async (queryOverrides: Record<string, string | number | string[] | undefined> = {}) => {
+    const loadCollection = useCallback(async (query: Record<string, string | number | string[] | undefined> = {}) => {
+        const requestKey = `${collectionSlug}:${JSON.stringify(query)}`;
+        if (firstPageRequestKeyRef.current === requestKey) return;
+
+        firstPageRequestKeyRef.current = requestKey;
+        const requestId = ++requestIdRef.current;
+        activeCollectionRef.current = collectionSlug;
+        activeQueryRef.current = query;
+        nextPageRef.current = 2;
+        hasNextPageRef.current = false;
+        isLoadingMoreRef.current = false;
+        inFlightPagesRef.current.clear();
+
+        setProducts([]);
+        setHasNextPage(false);
+        setIsLoadingMore(false);
+        setLoadMoreError(false);
         setIsLoading(true);
         setErrorMessage(null);
 
         try {
-            const query = { ...buildQuery(), ...queryOverrides };
-            const response = await fetchCollectionPage(collectionSlug, query);
+            const response = await fetchCollectionPage(collectionSlug, {
+                ...query,
+                page: 1,
+                limit: PAGE_SIZE,
+            });
+            if (!response) throw new Error("Failed to fetch collection");
+
             const data: CollectionResponse = response?.products ?? {};
+            if (requestId !== requestIdRef.current) return;
 
             setCategory(data.category ?? null);
             setChildCategories(data.childCategories ?? []);
             setProducts(data.products ?? []);
             setFilterGroups(data.filterGroups ?? {});
+            const moreAvailable = data.pagination?.hasNextPage ?? (data.products?.length === PAGE_SIZE);
+            hasNextPageRef.current = moreAvailable;
+            setHasNextPage(moreAvailable);
+            nextPageRef.current = (data.pagination?.page ?? 1) + 1;
         } catch (err) {
             console.error(err);
-            setErrorMessage("Unable to load collection.");
+            if (requestId === requestIdRef.current) {
+                setErrorMessage("Unable to load collection.");
+            }
         } finally {
-            setIsLoading(false);
+            if (requestId === requestIdRef.current) {
+                setIsLoading(false);
+                firstPageRequestKeyRef.current = null;
+            }
         }
-    };
+    }, [collectionSlug]);
+
+    const loadMore = useCallback(async () => {
+        if (isLoadingMoreRef.current || !hasNextPageRef.current) return;
+
+        const collection = activeCollectionRef.current;
+        const page = nextPageRef.current;
+        const query = activeQueryRef.current;
+        const requestId = requestIdRef.current;
+        const requestKey = `${collection}:${page}:${JSON.stringify(query)}`;
+        if (inFlightPagesRef.current.has(requestKey)) return;
+
+        inFlightPagesRef.current.add(requestKey);
+        isLoadingMoreRef.current = true;
+        setIsLoadingMore(true);
+        setLoadMoreError(false);
+
+        try {
+            const response = await fetchCollectionPage(collection, {
+                ...query,
+                page,
+                limit: PAGE_SIZE,
+            });
+            if (!response) throw new Error("Failed to fetch more products");
+
+            const data: CollectionResponse = response?.products ?? {};
+            if (requestId !== requestIdRef.current) return;
+
+            const newProducts = data.products ?? [];
+            setProducts((current) => {
+                const existingIds = new Set(current.map((product) => product.id));
+                const uniqueNewProducts = newProducts.filter((product) => {
+                    if (existingIds.has(product.id)) return false;
+                    existingIds.add(product.id);
+                    return true;
+                });
+                return [...current, ...uniqueNewProducts];
+            });
+
+            const moreAvailable = data.pagination?.hasNextPage ?? (newProducts.length === PAGE_SIZE);
+            hasNextPageRef.current = moreAvailable;
+            setHasNextPage(moreAvailable);
+            nextPageRef.current = page + 1;
+        } catch (err) {
+            console.error(err);
+            if (requestId === requestIdRef.current) setLoadMoreError(true);
+        } finally {
+            inFlightPagesRef.current.delete(requestKey);
+            if (requestId === requestIdRef.current) {
+                isLoadingMoreRef.current = false;
+                setIsLoadingMore(false);
+            }
+        }
+    }, []);
 
     useEffect(() => {
-        loadCollection();
-    }, [collectionSlug]);
+        async function loadInitialCollection() {
+            await loadCollection({});
+        }
+
+        void loadInitialCollection();
+    }, [loadCollection]);
+
+    useEffect(() => {
+        if (!hasNextPage || isLoading || isLoadingMore || loadMoreError || !sentinelRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) void loadMore();
+            },
+            { rootMargin: "600px 0px" }
+        );
+        observer.observe(sentinelRef.current);
+
+        return () => observer.disconnect();
+    }, [hasNextPage, isLoading, isLoadingMore, loadMoreError, loadMore]);
 
     const toggleCategory = (categoryId: number) => {
         setSelectedCategories((current) => {
@@ -161,7 +289,7 @@ export default function Collection() {
         setMinPrice("");
         setMaxPrice("");
         setAvailability(null);
-        loadCollection({});
+        void loadCollection({});
     };
 
     return (
@@ -177,7 +305,7 @@ export default function Collection() {
                     availability={availability}
                     onToggleCategory={toggleCategory}
                     onToggleFilterOption={toggleFilterOption}
-                    onApplyFilters={() => loadCollection()}
+                    onApplyFilters={() => void loadCollection(buildQuery())}
                     onClearFilters={clearFilters}
                     onPriceChange={(field, value) => {
                         if (field === "min") setMinPrice(value);
@@ -196,7 +324,7 @@ export default function Collection() {
                     availability={availability}
                     onToggleCategory={toggleCategory}
                     onToggleFilterOption={toggleFilterOption}
-                    onApplyFilters={() => loadCollection()}
+                    onApplyFilters={() => void loadCollection(buildQuery())}
                     onClearFilters={clearFilters}
                     onPriceChange={(field, value) => {
                         if (field === "min") setMinPrice(value);
@@ -230,6 +358,26 @@ export default function Collection() {
                                 ProductsList={products}
                                 CollectionName={category?.name ?? ""}
                             />
+                        )}
+                        {!isLoading && !errorMessage && (
+                            <div ref={sentinelRef} className="py-6 text-center" aria-live="polite">
+                                {isLoadingMore ? (
+                                    <span className="text-sm text-slate-500">Loading more products...</span>
+                                ) : loadMoreError ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setLoadMoreError(false);
+                                            void loadMore();
+                                        }}
+                                        className="text-sm text-pink-600 hover:underline"
+                                    >
+                                        Unable to load more products. Try again.
+                                    </button>
+                                ) : products.length > 0 && !hasNextPage ? (
+                                    <span className="text-sm text-slate-500">You&apos;ve reached the end.</span>
+                                ) : null}
+                            </div>
                         )}
                     </div>
                 </main>

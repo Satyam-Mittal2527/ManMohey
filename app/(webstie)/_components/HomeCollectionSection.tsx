@@ -62,7 +62,7 @@ export default function HomeCollectionSection({
 
             try {
                 const data: CollectionResponse =
-                    await fetchShopCollection(collectionSlug);
+                    await fetchShopCollection(collectionSlug, 1, limit);
           
                 setProducts((data.products ?? []).slice(0, limit));
             } catch (error) {

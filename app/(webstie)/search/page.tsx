@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { searchProducts } from "@/lib/api";
 
 interface ProductImage {
@@ -19,32 +19,127 @@ interface Product {
   product_images: ProductImage[];
 }
 
+interface SearchResponse {
+  products: Product[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+  };
+}
+
+const PAGE_SIZE = 20;
+
 function SearchResults() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q")?.trim() ?? "";
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const requestIdRef = useRef(0);
+  const initialRequestKeyRef = useRef<string | null>(null);
+  const requestBusyRef = useRef(false);
+  const hasNextPageRef = useRef(false);
+  const nextPageRef = useRef(2);
+  const inFlightPagesRef = useRef(new Set<string>());
+
+  const loadMore = useCallback(async () => {
+    if (requestBusyRef.current || !hasNextPageRef.current || !query) return;
+
+    const page = nextPageRef.current;
+    const requestId = requestIdRef.current;
+    const requestKey = `${query}:${page}`;
+    if (inFlightPagesRef.current.has(requestKey)) return;
+
+    inFlightPagesRef.current.add(requestKey);
+    requestBusyRef.current = true;
+    setIsLoadingMore(true);
+    setLoadMoreError(false);
+
+    try {
+      const result: SearchResponse = await searchProducts(query, page, PAGE_SIZE);
+      if (requestId !== requestIdRef.current) return;
+
+      const newProducts = result.products ?? [];
+      setProducts((current) => {
+        const existingIds = new Set(current.map((product) => product.id));
+        const uniqueNewProducts = newProducts.filter((product) => {
+          if (existingIds.has(product.id)) return false;
+          existingIds.add(product.id);
+          return true;
+        });
+        return [...current, ...uniqueNewProducts];
+      });
+      const moreAvailable = result.pagination?.hasNextPage ?? (newProducts.length === PAGE_SIZE);
+      hasNextPageRef.current = moreAvailable;
+      setHasNextPage(moreAvailable);
+      nextPageRef.current = page + 1;
+    } catch {
+      if (requestId === requestIdRef.current) setLoadMoreError(true);
+    } finally {
+      inFlightPagesRef.current.delete(requestKey);
+      if (requestId === requestIdRef.current) {
+        requestBusyRef.current = false;
+        setIsLoadingMore(false);
+      }
+    }
+  }, [query]);
 
   useEffect(() => {
-    let cancelled = false;
+    if (initialRequestKeyRef.current === query) return;
+    initialRequestKeyRef.current = query;
+    const requestId = ++requestIdRef.current;
+    requestBusyRef.current = true;
+    hasNextPageRef.current = false;
+    nextPageRef.current = 2;
+    inFlightPagesRef.current.clear();
+    setProducts([]);
+    setHasNextPage(false);
+    setIsLoadingMore(false);
+    setLoadMoreError(false);
 
     async function loadResults() {
       setIsLoading(true);
       setErrorMessage("");
       try {
-        const results = query ? await searchProducts(query) : [];
-        if (!cancelled) setProducts(results);
+        const result: SearchResponse = query ? await searchProducts(query, 1, PAGE_SIZE) : { products: [] };
+        if (requestId !== requestIdRef.current) return;
+        setProducts(result.products ?? []);
+        const moreAvailable = result.pagination?.hasNextPage ?? ((result.products ?? []).length === PAGE_SIZE);
+        hasNextPageRef.current = moreAvailable;
+        setHasNextPage(moreAvailable);
+        nextPageRef.current = (result.pagination?.page ?? 1) + 1;
       } catch {
-        if (!cancelled) setErrorMessage("Unable to search products right now.");
+        if (requestId === requestIdRef.current) setErrorMessage("Unable to search products right now.");
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          requestBusyRef.current = false;
+          setIsLoading(false);
+        }
       }
     }
 
-    loadResults();
-    return () => { cancelled = true; };
+    void loadResults();
   }, [query]);
+
+  useEffect(() => {
+    if (!hasNextPage || isLoading || isLoadingMore || loadMoreError || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) void loadMore();
+      },
+      { rootMargin: "600px 0px" }
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isLoading, isLoadingMore, loadMoreError, loadMore]);
 
   return (
     <main className="container mx-auto px-4 py-12">
@@ -76,6 +171,26 @@ function SearchResults() {
               </Link>
             </article>
           ))}
+        </div>
+      )}
+      {!isLoading && !errorMessage && products.length > 0 && (
+        <div ref={sentinelRef} className="py-8 text-center" aria-live="polite">
+          {isLoadingMore ? (
+            <span className="text-sm text-slate-500">Loading more products...</span>
+          ) : loadMoreError ? (
+            <button
+              type="button"
+              onClick={() => {
+                setLoadMoreError(false);
+                void loadMore();
+              }}
+              className="text-sm text-pink-600 hover:underline"
+            >
+              Unable to load more products. Try again.
+            </button>
+          ) : !hasNextPage ? (
+            <span className="text-sm text-slate-500">You&apos;ve reached the end.</span>
+          ) : null}
         </div>
       )}
     </main>

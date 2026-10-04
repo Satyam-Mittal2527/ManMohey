@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { fetchShopCollection } from "@/lib/api";
 
@@ -43,7 +43,16 @@ interface Collection {
 interface CollectionResponse {
     collection: Collection;
     products: Product[];
+    pagination?: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNextPage: boolean;
+    };
 }
+
+const PAGE_SIZE = 20;
 
 export default function ShopCollection() {
 
@@ -54,8 +63,73 @@ export default function ShopCollection() {
     const [collection, setCollection] = useState<Collection | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [loadMoreError, setLoadMoreError] = useState(false);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const requestIdRef = useRef(0);
+    const initialRequestKeyRef = useRef<string | null>(null);
+    const requestBusyRef = useRef(false);
+    const hasNextPageRef = useRef(false);
+    const nextPageRef = useRef(2);
+    const inFlightPagesRef = useRef(new Set<string>());
+
+    const loadMore = useCallback(async () => {
+        if (requestBusyRef.current || !hasNextPageRef.current) return;
+
+        const page = nextPageRef.current;
+        const requestId = requestIdRef.current;
+        const requestKey = `${collectionSlug}:${page}`;
+        if (inFlightPagesRef.current.has(requestKey)) return;
+
+        inFlightPagesRef.current.add(requestKey);
+        requestBusyRef.current = true;
+        setLoadingMore(true);
+        setLoadMoreError(false);
+
+        try {
+            const data: CollectionResponse = await fetchShopCollection(collectionSlug, page, PAGE_SIZE);
+            if (requestId !== requestIdRef.current) return;
+
+            const newProducts = data.products ?? [];
+            setProducts((current) => {
+                const existingIds = new Set(current.map((product) => product.id));
+                const uniqueNewProducts = newProducts.filter((product) => {
+                    if (existingIds.has(product.id)) return false;
+                    existingIds.add(product.id);
+                    return true;
+                });
+                return [...current, ...uniqueNewProducts];
+            });
+
+            const moreAvailable = data.pagination?.hasNextPage ?? (newProducts.length === PAGE_SIZE);
+            hasNextPageRef.current = moreAvailable;
+            setHasNextPage(moreAvailable);
+            nextPageRef.current = page + 1;
+        } catch (error) {
+            console.error(error);
+            if (requestId === requestIdRef.current) setLoadMoreError(true);
+        } finally {
+            inFlightPagesRef.current.delete(requestKey);
+            if (requestId === requestIdRef.current) {
+                requestBusyRef.current = false;
+                setLoadingMore(false);
+            }
+        }
+    }, [collectionSlug]);
 
     useEffect(() => {
+        if (initialRequestKeyRef.current === collectionSlug) return;
+        initialRequestKeyRef.current = collectionSlug;
+        const requestId = ++requestIdRef.current;
+        requestBusyRef.current = true;
+        hasNextPageRef.current = false;
+        nextPageRef.current = 2;
+        inFlightPagesRef.current.clear();
+        setProducts([]);
+        setHasNextPage(false);
+        setLoadingMore(false);
+        setLoadMoreError(false);
 
         async function loadCollection() {
 
@@ -63,11 +137,16 @@ export default function ShopCollection() {
 
             try {
 
-                const data: CollectionResponse = await fetchShopCollection(collectionSlug);
+                const data: CollectionResponse = await fetchShopCollection(collectionSlug, 1, PAGE_SIZE);
+                if (requestId !== requestIdRef.current) return;
 
                 setCollection(data.collection);
 
-                setProducts(data.products);
+                setProducts(data.products ?? []);
+                const moreAvailable = data.pagination?.hasNextPage ?? (data.products?.length === PAGE_SIZE);
+                hasNextPageRef.current = moreAvailable;
+                setHasNextPage(moreAvailable);
+                nextPageRef.current = (data.pagination?.page ?? 1) + 1;
 
             } catch (err) {
 
@@ -75,7 +154,10 @@ export default function ShopCollection() {
 
             } finally {
 
-                setLoading(false);
+                if (requestId === requestIdRef.current) {
+                    requestBusyRef.current = false;
+                    setLoading(false);
+                }
 
             }
 
@@ -84,6 +166,19 @@ export default function ShopCollection() {
         loadCollection();
 
     }, [collectionSlug]);
+
+    useEffect(() => {
+        if (!hasNextPage || loading || loadingMore || loadMoreError || !sentinelRef.current) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) void loadMore();
+            },
+            { rootMargin: "600px 0px" }
+        );
+        observer.observe(sentinelRef.current);
+        return () => observer.disconnect();
+    }, [hasNextPage, loading, loadingMore, loadMoreError, loadMore]);
 
     if (loading) {
 
@@ -108,7 +203,7 @@ bg-[#FCFAF7]
                 <p className="text-[12.5px] font-semibold tracking-[0.22em] uppercase text-[var(--gold-deep)] mb-[18px]">Curated by our in-house stylists</p>
                 <h1 className="font-[var(--font-display)] font-semibold text-[clamp(44px,7vw,78px)] text-[var(--wine-deep)] leading-[1.05]">{collection?.name}</h1>
                 <p className="font-[var(--font-display)] italic text-[20px] text-[var(--wine-soft)] mt-4">हाथों से बुना, दिलों से चुना</p>
-                <p className="max-w-[520px] mt-[18px] mx-auto text-[var(--ink-soft)] text-[15.5px] leading-[1.6]">Handwoven by artisans, chosen by women across India — the eight pieces our customers keep coming back for, ranked by what's flying off the shelf this month.</p>
+                <p className="max-w-[520px] mt-[18px] mx-auto text-[var(--ink-soft)] text-[15.5px] leading-[1.6]">Handwoven by artisans, chosen by women across India — the eight pieces our customers keep coming back for, ranked by what&apos;s flying off the shelf this month.</p>
                 <div className="md:flex justify-center gap-[28px] mt-[30px] text-[13.5px] font-medium text-[var(--ink-soft)] hidden">
                     <span className="flex items-center gap-[6px]"><strong>4.8★</strong> average rating</span>
                     <span className="flex items-center gap-[6px]">•</span>
@@ -162,6 +257,25 @@ bg-[#FCFAF7]
 
                     ))}
 
+                </div>
+
+                <div ref={sentinelRef} className="py-8 text-center" aria-live="polite">
+                    {loadingMore ? (
+                        <span className="text-sm text-slate-500">Loading more products...</span>
+                    ) : loadMoreError ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLoadMoreError(false);
+                                void loadMore();
+                            }}
+                            className="text-sm text-pink-600 hover:underline"
+                        >
+                            Unable to load more products. Try again.
+                        </button>
+                    ) : products.length > 0 && !hasNextPage ? (
+                        <span className="text-sm text-slate-500">You&apos;ve reached the end.</span>
+                    ) : null}
                 </div>
 
             </div>

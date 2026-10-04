@@ -56,7 +56,7 @@ export default function Home_section2() {
             try {
 
                 const data: CollectionResponse =
-                    await fetchShopCollection("new-arrivals");
+                    await fetchShopCollection("new-arrivals", 1, 4);
 
                 setProducts(data.products ?? []);
 
