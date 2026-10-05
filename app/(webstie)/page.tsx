@@ -6,6 +6,7 @@ import DealsBar from "./_components/DealsBar";
 import Testimonials from "./_components/Brands";
 import Link from "next/link";
 import Home_section5 from "./_components/Home_section5";
+import TemporaryGiftComingSoon from "./_components/TemporaryGiftComingSoon";
 const categories = [
     {
         name: "Sarees",
@@ -54,6 +55,8 @@ export default function Home() {
     return (
 
         <main className="bg-slate-50">
+            {/* TEMPORARY: Remove this component and its import when products are available. */}
+            <TemporaryGiftComingSoon />
             <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
                 <div className="flex flex-row gap-8 justify-center-safe">
                     {categories.map((category) => (

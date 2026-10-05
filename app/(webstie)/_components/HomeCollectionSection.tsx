@@ -76,6 +76,7 @@ export default function HomeCollectionSection({
         loadProducts();
     }, [collectionSlug, limit, title]);
        
+    // TEMPORARY: Remove blur-[5px] from the product image below when products are ready.
     return (
         <section className="bg-white py-12 md:py-14">
             <div className="container mx-auto px-4">
@@ -129,7 +130,7 @@ export default function HomeCollectionSection({
                                             <img
                                                 src={image}
                                                 alt={product.name}
-                                                className="aspect-[3/4] w-full object-cover"
+                                                className="aspect-[3/4] w-full scale-105 object-cover blur-[5px]"
                                             />
                                         ) : (
                                             <div className="flex aspect-[3/4] w-full items-center justify-center bg-gray-100 text-sm text-gray-500">
