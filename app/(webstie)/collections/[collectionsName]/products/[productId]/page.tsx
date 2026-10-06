@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/app/(webstie)/_components/ui/button";
 import { Check, Heart, Minus, Plus, ShoppingCart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { fetchProductById, fetchProductReviews } from "@/lib/api";
+import { fetchProductById, fetchProductReviews, GetCurrentUser, submitProductReview } from "@/lib/api";
 import { addToCart } from "@/lib/checkout";
 import { addToWishlist, isProductWishlisted, removeFromWishlist } from "@/lib/wishlist";
 import RelatedProducts from "./RelatedProduct";
@@ -113,6 +113,14 @@ export default function Product() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [selectedReviewImage, setSelectedReviewImage] = useState<string | null>(null);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, comment: "" });
+  const [reviewFiles, setReviewFiles] = useState<File[]>([]);
+  const [reviewPreviews, setReviewPreviews] = useState<string[]>([]);
+  const [reviewFormError, setReviewFormError] = useState<string | null>(null);
+  const [reviewFormSuccess, setReviewFormSuccess] = useState<string | null>(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -168,36 +176,44 @@ export default function Product() {
     checkWishlist();
   }, [product]);
 
+  const loadReviews = async (currentProduct: Product | null = product) => {
+    if (!currentProduct) return;
+
+    setReviewsLoading(true);
+    setReviewsError(null);
+
+    try {
+      const reviewProductId = currentProduct.id ?? Number(productId);
+      const response = await fetchProductReviews(reviewProductId || currentProduct.slug, 1, 20);
+      setReviews(response);
+    } catch (error) {
+      console.error("Failed to load reviews:", error);
+      setReviewsError("Unable to load reviews right now.");
+      setReviews(null);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!product) return;
-
-    let isActive = true;
-
-    const loadReviews = async () => {
-      setReviewsLoading(true);
-      setReviewsError(null);
-
-      try {
-        const reviewProductId = product.id ?? Number(productId);
-        const response = await fetchProductReviews(reviewProductId || product.slug, 1, 10);
-        if (!isActive) return;
-        setReviews(response);
-      } catch (error) {
-        if (!isActive) return;
-        console.error("Failed to load reviews:", error);
-        setReviewsError("Unable to load reviews right now.");
-        setReviews(null);
-      } finally {
-        if (isActive) setReviewsLoading(false);
-      }
-    };
-
-    void loadReviews();
-
-    return () => {
-      isActive = false;
-    };
+    void loadReviews(product);
   }, [product]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuth = async () => {
+      const data = await GetCurrentUser();
+      if (!isMounted) return;
+      setIsAuthenticated(Boolean(data?.user));
+    };
+
+    void checkAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
 
   console.log(productId);
@@ -372,6 +388,131 @@ export default function Product() {
     ...Object.values(reviews?.summary?.rating_distribution ?? { "5": 0, "4": 0, "3": 0, "2": 0, "1": 0 }),
     1,
   );
+
+  const buildReviewSummary = (reviewItems: Review[]): ReviewSummary => {
+    const distribution = { "5": 0, "4": 0, "3": 0, "2": 0, "1": 0 };
+    let totalScore = 0;
+
+    reviewItems.forEach((review) => {
+      const key = String(review.rating) as keyof typeof distribution;
+      distribution[key] += 1;
+      totalScore += review.rating;
+    });
+
+    const totalReviews = reviewItems.length;
+
+    return {
+      average_rating: totalReviews ? totalScore / totalReviews : 0,
+      total_reviews: totalReviews,
+      rating_distribution: distribution,
+    };
+  };
+
+  const handleReviewPhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    if (selectedFiles.length === 0) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const validFiles: File[] = [];
+    const nextPreviews: string[] = [];
+
+    for (const file of selectedFiles) {
+      if (!allowedTypes.includes(file.type)) {
+        setReviewFormError("Only JPG, PNG, and WebP images are allowed.");
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setReviewFormError("Each review image must be 5 MB or smaller.");
+        continue;
+      }
+      if (reviewFiles.length + validFiles.length >= 5) {
+        setReviewFormError("You can upload up to 5 images per review.");
+        break;
+      }
+      validFiles.push(file);
+      nextPreviews.push(URL.createObjectURL(file));
+    }
+
+    if (validFiles.length > 0) {
+      setReviewFiles((current) => [...current, ...validFiles]);
+      setReviewPreviews((current) => [...current, ...nextPreviews]);
+      setReviewFormError(null);
+    }
+
+    event.target.value = "";
+  };
+
+  const removeReviewPhoto = (index: number) => {
+    setReviewFiles((current) => current.filter((_, fileIndex) => fileIndex !== index));
+    setReviewPreviews((current) => current.filter((_, fileIndex) => fileIndex !== index));
+  };
+
+  const handleReviewSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!product) return;
+
+    if (!isAuthenticated) {
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      return;
+    }
+
+    const trimmedComment = reviewForm.comment.trim();
+    if (!reviewForm.rating) {
+      setReviewFormError("Please select a star rating before submitting your review.");
+      setReviewFormSuccess(null);
+      return;
+    }
+
+    if (!trimmedComment) {
+      setReviewFormError("Please write a review before submitting.");
+      setReviewFormSuccess(null);
+      return;
+    }
+
+    if (trimmedComment.length > 2000) {
+      setReviewFormError("Your review must be 2000 characters or fewer.");
+      setReviewFormSuccess(null);
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewFormError(null);
+    setReviewFormSuccess(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("rating", String(reviewForm.rating));
+      formData.append("comment", trimmedComment);
+      reviewFiles.forEach((file) => formData.append("images", file));
+
+      const response = await submitProductReview(product.id, formData);
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.dispatchEvent(new CustomEvent("open-auth-modal"));
+          setReviewFormError("Please sign in to submit a review.");
+          return;
+        }
+
+        const detail = response.data?.detail || response.data?.message || "Unable to submit your review.";
+        setReviewFormError(detail);
+        return;
+      }
+
+      setReviewForm({ rating: 0, comment: "" });
+      setReviewFiles([]);
+      setReviewPreviews([]);
+      setIsReviewFormOpen(false);
+      setReviewFormSuccess("Thanks! Your review has been added.");
+      await loadReviews(product);
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      setReviewFormError("Something went wrong while submitting your review. Please try again.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -645,7 +786,93 @@ export default function Product() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-2xl font-bold text-slate-900">Customer Reviews</h2>
+            <Button
+              type="button"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                  return;
+                }
+                setIsReviewFormOpen((current) => !current);
+              }}
+            >
+              {isReviewFormOpen ? "Close Form" : "Write a Review"}
+            </Button>
           </div>
+
+          {isReviewFormOpen && (
+            <form onSubmit={handleReviewSubmit} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-lg font-semibold text-slate-900">Write a review</p>
+                  <p className="text-sm text-slate-500">Share your experience with this product.</p>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewForm((current) => ({ ...current, rating: star }))}
+                      className="text-2xl transition hover:scale-110"
+                      aria-label={`Rate ${star} out of 5`}
+                    >
+                      <span className={star <= reviewForm.rating ? "text-amber-500" : "text-slate-300"}>★</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <textarea
+                  value={reviewForm.comment}
+                  onChange={(event) => setReviewForm((current) => ({ ...current, comment: event.target.value }))}
+                  placeholder="Tell other shoppers what you liked or disliked..."
+                  rows={4}
+                  maxLength={2000}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+                />
+                <div className="mt-1 text-right text-xs text-slate-500">{reviewForm.comment.length}/2000</div>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 transition hover:border-slate-400 hover:text-slate-800">
+                  <span className="font-medium">Add photos</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleReviewPhotoChange} className="hidden" />
+                </label>
+
+                {reviewPreviews.length > 0 && (
+                  <div className="flex flex-wrap gap-3">
+                    {reviewPreviews.map((preview, index) => (
+                      <div key={`${preview}-${index}`} className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-2">
+                        <Image src={preview} alt={`Review upload ${index + 1}`} width={96} height={96} className="h-24 w-24 object-cover rounded-lg" />
+                        <button
+                          type="button"
+                          onClick={() => removeReviewPhoto(index)}
+                          className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-xs text-white shadow"
+                          aria-label={`Remove photo ${index + 1}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {(reviewFormError || reviewFormSuccess) && (
+                <div className={`mt-3 rounded-xl px-3 py-2 text-sm ${reviewFormError ? "border border-rose-200 bg-rose-50 text-rose-700" : "border border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+                  {reviewFormError || reviewFormSuccess}
+                </div>
+              )}
+
+              <div className="mt-4 flex justify-end">
+                <Button type="submit" disabled={isSubmittingReview} className="min-w-36">
+                  {isSubmittingReview ? "Submitting Review..." : "Submit Review"}
+                </Button>
+              </div>
+            </form>
+          )}
 
           {reviewsLoading ? (
             <div className="space-y-4 animate-pulse" aria-live="polite" aria-busy="true">
