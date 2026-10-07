@@ -7,57 +7,57 @@ import Testimonials from "./_components/Brands";
 import Link from "next/link";
 import Home_section5 from "./_components/Home_section5";
 import TemporaryGiftComingSoon from "./_components/TemporaryGiftComingSoon";
-const categories = [
-    {
-        name: "Sarees",
-        href: "/collections/sarees",
-        image: "/saree_icon.png",
-        description: "Timeless elegance in every drape",
-    },
-    {
-        name: "Kurtis",
-        href: "/collections/kurtis",
-        image: "/kurti_icon.png",
-        description: "Comfort meets style",
-    },
-    {
-        name: "Lehengas",
-        href: "/collections/lehengas",
-        image: "/lehenga_icon.png",
-        description: "Celebrate in grace and beauty",
-    },
-    {
-        name: "Unstitch",
-        href: "/collections/unstich",
-        image: "/saree_icon.png",
-        description: "Perfect everyday elegance",
-    },
-    {
-        name: "Bridal",
-        href: "/collections/bridal",
-        image: "/bridal_icon.png",
-        description: "Modern meets traditional",
-    },
-    {
-        name: "Beauty",
-        href: "/collections/beauty",
-        image: "/beauty_icon.png",
-        description: "Modern meets traditional",
-    },
-    {
-        name: "Lingerie",
-        href: "/collections/lingerie",
-        image: "/lingerie_icon.png",
-        description: "Modern meets traditional",
-    },
-];
+// const categories = [
+//     {
+//         name: "Sarees",
+//         href: "/collections/sarees",
+//         image: "/saree_icon.png",
+//         description: "Timeless elegance in every drape",
+//     },
+//     {
+//         name: "Kurtis",
+//         href: "/collections/kurtis",
+//         image: "/kurti_icon.png",
+//         description: "Comfort meets style",
+//     },
+//     {
+//         name: "Lehengas",
+//         href: "/collections/lehengas",
+//         image: "/lehenga_icon.png",
+//         description: "Celebrate in grace and beauty",
+//     },
+//     {
+//         name: "Unstitch",
+//         href: "/collections/unstich",
+//         image: "/saree_icon.png",
+//         description: "Perfect everyday elegance",
+//     },
+//     {
+//         name: "Bridal",
+//         href: "/collections/bridal",
+//         image: "/bridal_icon.png",
+//         description: "Modern meets traditional",
+//     },
+//     {
+//         name: "Beauty",
+//         href: "/collections/beauty",
+//         image: "/beauty_icon.png",
+//         description: "Modern meets traditional",
+//     },
+//     {
+//         name: "Lingerie",
+//         href: "/collections/lingerie",
+//         image: "/lingerie_icon.png",
+//         description: "Modern meets traditional",
+//     },
+// ];
 export default function Home() {
     return (
 
         <main className="bg-slate-50">
             {/* TEMPORARY: Remove this component and its import when products are available. */}
             <TemporaryGiftComingSoon />
-            <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
+            {/* <nav className="md:hidden overflow-x-auto flex items-center gap-8 text-sm font-medium text-slate-700 border-2 border-b-black">
                 <div className="flex flex-row gap-8 justify-center-safe">
                     {categories.map((category) => (
                         <div key={category.name} className="relative group">
@@ -79,7 +79,7 @@ export default function Home() {
                         </div>
                     ))}
                 </div>
-            </nav>
+            </nav> */}
             <Hero />
             <DealsBar />
 

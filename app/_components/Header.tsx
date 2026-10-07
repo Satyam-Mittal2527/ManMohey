@@ -1,15 +1,36 @@
 "use client"
 
-import React, { useState, useEffect, use } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../(webstie)/_components/ui/button";
 import AuthForm from "../(auth)/AuthPage";
-import Profile from "../(account)/profile/page";
-import Orders from "../(account)/orders/page";
 import { SendOtp, VerifyOtp, Register_User, GetCurrentUser, Logout } from "@/lib/api";
+
+interface HeaderUser {
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  user_metadata?: { display_name?: string | null } | null;
+}
+
+function getRegisterErrorMessage(detail: unknown) {
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object" && "msg" in item) return String(item.msg);
+        return "";
+      })
+      .filter(Boolean);
+    if (messages.length > 0) return messages.join(" ");
+  }
+  return "We couldn’t create your account. Please review your details and try again.";
+}
+
 const categories = [
   {
     name: "Sarees",
@@ -86,7 +107,7 @@ export default function Header() {
   }
   const [profilePageClick, setProfilePageClick] = useState(false)
   const [isSignedIn, setIsSignedIn] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any | null>(null)
+  const [currentUser, setCurrentUser] = useState<HeaderUser | null>(null)
   const [showLoginPopup, setShowLoginPopup] = useState(false)
   const [showRegisterPopup, setShowRegisterPopup] = useState(false)
   const [Login_Form_items, setLogin_Form_items] = useState([{
@@ -125,6 +146,8 @@ export default function Header() {
     password: "",
     confirm_password: "",
   })
+  const [registerErrorMessage, setRegisterErrorMessage] = useState<string | null>(null)
+  const [isRegistering, setIsRegistering] = useState(false)
 
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [cooldownEnd, setCooldownEnd] = useState<number | null>(null);
@@ -194,22 +217,31 @@ export default function Header() {
   function handleRegisterChange(event: React.ChangeEvent<HTMLInputElement>) {
     const name = event.target.name;
     const value = event.target.value;
+    setRegisterErrorMessage(null);
     setRegisterData((s) => ({ ...s, [name]: value }));
   }
 
   async function handleRegisterSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // basic client-side validation
+    setRegisterErrorMessage(null);
     if (registerData.password !== registerData.confirm_password) {
-      alert("Passwords do not match");
+      setRegisterErrorMessage("Your passwords don’t match. Please check them and try again.");
       return;
     }
-    const resp = await Register_User(registerData);
-    console.log("Register response:", resp);
-    if (resp && resp.ok) {
-      setIsSignedIn(true);
-      setShowRegisterPopup(false);
-      setProfilePageClick(true);
+    setIsRegistering(true);
+    try {
+      const resp = await Register_User(registerData);
+      if (resp?.ok) {
+        setIsSignedIn(true);
+        setShowRegisterPopup(false);
+        setProfilePageClick(true);
+      } else {
+        setRegisterErrorMessage(getRegisterErrorMessage(resp?.detail));
+      }
+    } catch {
+      setRegisterErrorMessage("We couldn’t complete your registration. Please try again.");
+    } finally {
+      setIsRegistering(false);
     }
   }
 
@@ -234,7 +266,7 @@ export default function Header() {
     return () => window.removeEventListener("open-auth-modal", handleOpenAuthModal)
   }, [])
 
-  const setAndPersistUser = (u: any | null) => {
+  const setAndPersistUser = (u: HeaderUser | null) => {
     setCurrentUser(u);
     setIsSignedIn(!!u);
     if (!u) clearCachedAuthData();
@@ -523,6 +555,29 @@ z-50
             </div>
           </div>
         </div>
+        <nav
+          aria-label="Shop categories"
+          className="border-t border-slate-100 px-2 py-2 md:hidden"
+        >
+          <div className="flex items-start gap-5 overflow-x-auto overscroll-x-contain px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {categories.map((category) => (
+              <Link
+                key={category.name}
+                href={category.href}
+                className="flex min-w-[64px] shrink-0 flex-col items-center gap-1 text-center text-[11px] font-medium leading-tight text-slate-700"
+              >
+                <span className="flex h-10 w-10 items-center justify-center">
+                  <img
+                    src={category.image}
+                    alt=""
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </span>
+                <span className="max-w-16">{category.name}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
       </header>
 
       {showLoginPopup && (
@@ -562,7 +617,7 @@ z-50
               <div className="text-center mt-3">
                 <span className="text-body-3">
                   New to the ManMohey?&nbsp;
-                  <span className="text-blue-600 font-sm" onClick={() => setShowRegisterPopup(true)}>Register</span>
+                  <span className="text-blue-600 font-sm" onClick={() => { setRegisterErrorMessage(null); setShowRegisterPopup(true); }}>Register</span>
 
                 </span>
               </div>
@@ -591,6 +646,8 @@ z-50
                   formData={registerData}
                   handleChange={handleRegisterChange}
                   SubmitButtonText="Register"
+                  errorMessage={registerErrorMessage}
+                  isSubmitting={isRegistering}
                 />
 
                 <div className="mt-3 text-center">

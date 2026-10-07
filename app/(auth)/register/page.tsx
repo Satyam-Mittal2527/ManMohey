@@ -1,9 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AuthForm from "../AuthPage";
 import { Register_User } from "@/lib/api";
 
+function getRegistrationError(detail: unknown) {
+    if (typeof detail === "string" && detail.trim()) return detail;
+    if (Array.isArray(detail)) {
+        const messages = detail
+            .map((item) => {
+                if (typeof item === "string") return item;
+                if (item && typeof item === "object" && "msg" in item) {
+                    return String(item.msg);
+                }
+                return "";
+            })
+            .filter(Boolean);
+        if (messages.length > 0) return messages.join(" ");
+    }
+    return "We couldn’t create your account. Please review your details and try again.";
+}
 
 const Login_Form_items = [{
     name: "email",
@@ -44,6 +60,8 @@ const Login_Form_items = [{
 
 
 export default function Register() {
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setformData] = useState({
         email: "",
         password: "",
@@ -57,34 +75,39 @@ export default function Register() {
         event: React.FormEvent<HTMLFormElement>
     ) {
         event.preventDefault();
-        if (formData.password != formData.confirm_password) {
-            alert("Passwords Doesnt match")
+        setErrorMessage(null);
+        if (formData.password !== formData.confirm_password) {
+            setErrorMessage("Your passwords don’t match. Please check them and try again.");
             return;
         }
 
-        let response = await Register_User({
-            email: formData.email,
-            password: formData.password,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            age: formData.age,
-            phone_number: formData.phone_number
-        });
-        console.log(response);
-        if (response.status_code == 201) {
-            alert("Registration Successful! Please Login.")
-            window.location.href = "/login";
-        } else {
-            alert("Registration Failed: " + response.detail);
+        setIsSubmitting(true);
+        try {
+            const response = await Register_User({
+                email: formData.email,
+                password: formData.password,
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                age: formData.age,
+                phone_number: formData.phone_number
+            });
+            if (response?.ok) {
+                window.location.href = "/login";
+            } else {
+                setErrorMessage(getRegistrationError(response?.detail));
+            }
+        } catch {
+            setErrorMessage("We couldn’t complete your registration. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
-        console.log("Form submitted with data:", formData);
     }
     function handleChange(
         event: React.ChangeEvent<HTMLInputElement>
     ) {
         const name = event.target.name as keyof typeof formData;
         const value = event.target.value;
-        
+        setErrorMessage(null);
         setformData((currentFields) => ({
             ...currentFields,
             [name]: value,
@@ -98,6 +121,8 @@ export default function Register() {
                 formData={formData}
                 handleChange={handleChange}
                 SubmitButtonText="Register"
+                errorMessage={errorMessage}
+                isSubmitting={isSubmitting}
             />
             <span className="text-body-3">
                 Have Account? Sign in here

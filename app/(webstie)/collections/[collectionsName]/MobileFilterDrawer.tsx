@@ -30,6 +30,9 @@ interface Category {
 
 interface MobileFilterDrawerProps {
     childCategories: Category[];
+    title?: string;
+    categoryTitle?: string;
+    showPriceAvailability?: boolean;
     filterGroups?: Record<string, FilterGroup>;
     selectedFilterValues?: Record<string, number[]>;
     selectedCategories?: number[];
@@ -46,6 +49,9 @@ interface MobileFilterDrawerProps {
 
 export default function MobileFilterDrawer({
     childCategories,
+    title,
+    categoryTitle = "Categories",
+    showPriceAvailability = true,
     filterGroups,
     selectedFilterValues = {},
     selectedCategories = [],
@@ -65,15 +71,15 @@ export default function MobileFilterDrawer({
 
     return (
         <>
-            <div className="fixed bottom-0 inset-x-0 z-40 grid grid-cols-3 bg-black text-white md:hidden">
+            <div className={`fixed bottom-0 inset-x-0 z-40 grid ${showPriceAvailability ? "grid-cols-3" : "grid-cols-2"} bg-black text-white md:hidden`}>
                 <button onClick={() => setOpenCategory(true)} className="py-3">
                     <i className="bi bi-handbag"></i>
-                    <span className="ml-2">Category</span>
+                    <span className="ml-2">{categoryTitle}</span>
                 </button>
-                <button onClick={() => setOpenPrice(true)} className="py-3 border-x border-gray-700">
+                {showPriceAvailability && <button onClick={() => setOpenPrice(true)} className="py-3 border-x border-gray-700">
                     <i className="bi bi-cash-stack"></i>
                     <span className="ml-2">Price</span>
-                </button>
+                </button>}
                 <button onClick={() => setOpenFilters(true)} className="py-3">
                     <i className="bi bi-funnel"></i>
                     <span className="ml-2">Filters</span>
@@ -87,7 +93,7 @@ export default function MobileFilterDrawer({
                         <button onClick={() => setOpenCategory(false)} className="mb-5 flex items-center gap-2">
                             ← Back
                         </button>
-                        <h3 className="mb-4 text-lg font-semibold">Categories</h3>
+                        <h3 className="mb-4 text-lg font-semibold">{categoryTitle}</h3>
 
                         {childCategories.map((category) => {
                                                 const href = `/collections/${encodeURIComponent(
@@ -170,6 +176,7 @@ export default function MobileFilterDrawer({
                         <button onClick={() => setOpenFilters(false)} className="mb-5 flex items-center gap-2">
                             ← Back
                         </button>
+                        {title && <h2 className="mb-4 text-lg font-semibold">{title}</h2>}
                         {Object.entries(filterGroups ?? {}).map(([key, group]) => {
                             if (group.type !== "range" && group.options.length === 0) return null;
 
@@ -212,7 +219,7 @@ export default function MobileFilterDrawer({
                             );
                         })}
 
-                        <div className="space-y-2">
+                        {showPriceAvailability && <div className="space-y-2">
                             <label className="flex items-center gap-3 cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -231,7 +238,7 @@ export default function MobileFilterDrawer({
                                 />
                                 <span className="text-sm text-slate-700">Out of Stock</span>
                             </label>
-                        </div>
+                        </div>}
 
                         <button
                             className="mt-6 w-full rounded-md bg-black py-2 text-white"

@@ -93,13 +93,16 @@ export default function HomeCollectionSection({
                     </Link>
                 </div>
 
-                <div className="grid gap-8 grid-cols-[repeat(auto-fit,minmax(240px,1fr))]">
+                <div
+                    aria-label={`${title} products`}
+                    className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-4 sm:gap-6"
+                >
 
                     {isLoading ? (
                         Array.from({ length: limit }).map((_, index) => (
                             <div
                                 key={index}
-                                className="flex flex-col gap-4 rounded-lg border border-gray-200 p-4 animate-pulse"
+                                className="w-[78vw] max-w-[280px] shrink-0 snap-start flex flex-col gap-4 rounded-lg border border-gray-200 p-4 animate-pulse"
                             >
                                 <div className="h-[360px] rounded-md bg-slate-200" />
                                 <div className="h-4 w-3/4 rounded bg-slate-200" />
@@ -107,7 +110,7 @@ export default function HomeCollectionSection({
                             </div>
                         ))
                     ) : errorMessage ? (
-                        <div className="col-span-full rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-700">
+                        <div className="w-full shrink-0 rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-700">
                             {errorMessage}
                         </div>
                     ) : products.length > 0 ? (
@@ -123,7 +126,7 @@ export default function HomeCollectionSection({
                             return (
                                 <div
                                     key={product.id}
-                                    className="flex flex-col gap-4 rounded-lg border border-gray-200 p-4 transition hover:shadow-lg"
+                                    className="w-[78vw] max-w-[280px] shrink-0 snap-start flex flex-col gap-4 rounded-lg border border-gray-200 p-4 transition hover:shadow-lg"
                                 >
                                     <div className="overflow-hidden rounded-md bg-white">
                                         {image ? (
@@ -171,7 +174,7 @@ export default function HomeCollectionSection({
                             );
                         })
                     ) : (
-                        <div className="col-span-full rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
+                        <div className="w-full shrink-0 rounded-lg border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
                             No products found.
                         </div>
                     )}

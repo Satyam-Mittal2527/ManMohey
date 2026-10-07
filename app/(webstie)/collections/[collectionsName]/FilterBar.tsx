@@ -28,6 +28,9 @@ interface Category {
 
 interface FilterBarProps {
     childCategories: Category[];
+    title?: string;
+    categoryTitle?: string;
+    showPriceAvailability?: boolean;
     filterGroups?: Record<string, FilterGroup>;
     selectedFilterValues?: Record<string, number[]>;
     selectedCategories?: number[];
@@ -44,6 +47,9 @@ interface FilterBarProps {
 
 export default function Filter_bar({
     childCategories,
+    title,
+    categoryTitle = "Category",
+    showPriceAvailability = true,
     filterGroups,
     selectedFilterValues = {},
     selectedCategories = [],
@@ -59,9 +65,10 @@ export default function Filter_bar({
 }: FilterBarProps) {
     return (
         <aside className="hidden md:block w-[260px] p-5 sticky top-[100px] overflow-y-auto self-start max-h-[calc(100vh-140px)] bg-white">
+            {title && <h2 className="mb-4 text-lg font-semibold">{title}</h2>}
             {childCategories.length > 0 && (
                 <div className="pb-5 mb-5 border-b">
-                    <h3 className="font-semibold mb-3">Category</h3>
+                    <h3 className="font-semibold mb-3">{categoryTitle}</h3>
 
                     {childCategories.map((category) => {
                         const href = `/collections/${encodeURIComponent(
@@ -85,7 +92,7 @@ export default function Filter_bar({
                 </div>
             )}
 
-            <div className="pb-5 mb-5 border-b">
+            {showPriceAvailability && <div className="pb-5 mb-5 border-b">
                 <h3 className="font-semibold mb-3">Price</h3>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                     <label className="flex flex-col gap-1">
@@ -109,9 +116,9 @@ export default function Filter_bar({
                         />
                     </label>
                 </div>
-            </div>
+            </div>}
 
-            <div className="mb-6">
+            {showPriceAvailability && <div className="mb-6">
                 <h3 className="text-sm font-medium mb-3">Availability</h3>
                 <div className="space-y-2">
                     <label className="flex items-center gap-3 cursor-pointer">
@@ -133,7 +140,7 @@ export default function Filter_bar({
                         <span className="text-sm text-slate-700">Out of Stock</span>
                     </label>
                 </div>
-            </div>
+            </div>}
 
             {Object.entries(filterGroups ?? {}).map(([key, group]) => {
                 if (group.type !== "range" && group.options.length === 0) return null;
